@@ -5,7 +5,10 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient as createSupabaseAdminClient } from "@supabase/supabase-js";
 import { isLocale, locales, type Locale } from "@/i18n/config";
-import { buildAdminCertificationPayload } from "@/lib/admin-certifications";
+import {
+  buildAdminCertificationPayload,
+  normalizeCertificateTemplate
+} from "@/lib/admin-certifications";
 import { parseInquiryReceipt } from "@/lib/receipts";
 import {
   buildCourseLocalizationPayload,
@@ -101,6 +104,8 @@ export type UploadAdminContentImageResult = SaveAdminContentResult & {
 };
 
 export type UploadAdminContentAttachmentResult = UploadAdminContentImageResult;
+export type SaveAdminCertificateTemplateResult = SaveAdminContentResult;
+export type UploadAdminCertificateTemplateImageResult = UploadAdminContentImageResult;
 
 export type DeleteAdminContentResult = {
   ok: boolean;
@@ -528,6 +533,10 @@ async function uploadAdminFileToStorage(input: {
   };
 }
 
+function canManageCertificateTemplate(role: string, status: string) {
+  return ["certification_manager", "super_admin"].includes(role) && status === "active";
+}
+
 export async function updateAdminUserRole(input: {
   role: string;
   status: string;
@@ -787,6 +796,53 @@ export async function saveAdminCertification(input: {
   return { ok: true, message: "자격 데이터가 저장되었습니다." };
 }
 
+export async function saveAdminCertificateTemplate(input: unknown): Promise<SaveAdminCertificateTemplateResult> {
+  const template = normalizeCertificateTemplate(input);
+
+  if (!hasSupabaseBrowserEnv()) {
+    return { ok: false, message: missingSupabaseMessage };
+  }
+
+  const actor = await getActiveAdminRole();
+
+  if (!actor.userId) {
+    return { ok: false, message: "로그인이 필요합니다." };
+  }
+
+  if (!canManageCertificateTemplate(actor.role, actor.status)) {
+    return { ok: false, message: "자격 관리자 권한이 필요합니다." };
+  }
+
+  if (template.status === "published") {
+    const { error: archiveError } = await actor.supabase
+      .from("certificate_templates")
+      .update({ status: "draft" })
+      .eq("status", "published");
+
+    if (archiveError) {
+      return { ok: false, message: archiveError.message };
+    }
+  }
+
+  const { error } = await actor.supabase.from("certificate_templates").insert({
+    background_image_url: template.backgroundImageUrl || null,
+    created_by: actor.userId,
+    layout_json: template.layout,
+    name: template.name,
+    status: template.status
+  });
+
+  if (error) {
+    return { ok: false, message: error.message };
+  }
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/certifications");
+  revalidatePath("/ko/account");
+  revalidatePath("/ko/account/certifications");
+  return { ok: true, message: "자격증 디자인 설정이 저장되었습니다." };
+}
+
 export async function saveAdminInquiry(input: {
   managerNote: string;
   receipt: string;
@@ -937,6 +993,66 @@ export async function uploadAdminContentImage(formData: FormData): Promise<Uploa
   }
 
   return { ok: true, message: "대표 이미지가 업로드되었습니다.", url: uploadResult.publicUrl };
+}
+
+export async function uploadAdminCertificateTemplateImage(formData: FormData): Promise<UploadAdminCertificateTemplateImageResult> {
+  if (!hasSupabaseBrowserEnv()) {
+    return { ok: false, message: missingSupabaseMessage };
+  }
+
+  const actor = await getActiveAdminRole();
+
+  if (!actor.userId) {
+    return { ok: false, message: "로그인이 필요합니다." };
+  }
+
+  if (!canManageCertificateTemplate(actor.role, actor.status)) {
+    return { ok: false, message: "자격 관리자 권한이 필요합니다." };
+  }
+
+  const fileValue = formData.get("file");
+
+  if (!isUploadFile(fileValue) || fileValue.size === 0) {
+    return { ok: false, message: "자격증 디자인 이미지를 선택해 주세요." };
+  }
+
+  if (fileValue.size > maxAdminImageSize) {
+    return { ok: false, message: "자격증 디자인 이미지는 5MB 이하 파일만 업로드할 수 있습니다." };
+  }
+
+  const claimedType = fileValue.type as (typeof allowedAdminImageTypes)[number];
+
+  if (!allowedAdminImageTypes.includes(claimedType)) {
+    return { ok: false, message: "JPG, PNG, WebP, GIF 이미지만 업로드할 수 있습니다." };
+  }
+
+  const arrayBuffer = await fileValue.arrayBuffer();
+  const bytes = new Uint8Array(arrayBuffer);
+  const detectedType = getDetectedImageType(bytes);
+
+  if (!detectedType || detectedType !== claimedType) {
+    return { ok: false, message: "파일 형식이 이미지 시그니처와 일치하지 않습니다." };
+  }
+
+  const dateSegment = new Date().toISOString().slice(0, 10);
+  const extension = getImageExtension(detectedType);
+  const path = `certificates/templates/${dateSegment}/certificate-template-${randomUUID()}.${extension}`;
+  const uploadResult = await uploadAdminFileToStorage({
+    arrayBuffer,
+    contentType: detectedType,
+    failureLabel: "자격증 디자인",
+    path
+  });
+
+  if (!uploadResult.ok) {
+    return { ok: false, message: uploadResult.message };
+  }
+
+  if (!uploadResult.publicUrl) {
+    return { ok: false, message: "업로드된 자격증 디자인 경로를 확인할 수 없습니다." };
+  }
+
+  return { ok: true, message: "자격증 디자인 이미지가 업로드되었습니다.", url: uploadResult.publicUrl };
 }
 
 export async function uploadAdminContentAttachment(formData: FormData): Promise<UploadAdminContentAttachmentResult> {

@@ -21,6 +21,7 @@ Open Supabase Dashboard > SQL Editor and run the migration files in this exact o
 6. `supabase/migrations/202607270002_create_admin_uploads_bucket.sql`
 7. `supabase/migrations/202608020001_add_board_author_and_view_count.sql`
 8. `supabase/migrations/202608080001_extend_profile_registration_fields.sql`
+9. `supabase/migrations/202609140001_create_certificate_templates.sql`
 
 Run each file separately. The migrations use `create ... if not exists`, `drop trigger if exists`, and policy/table names that are intended for forward setup.
 
@@ -50,6 +51,7 @@ where table_schema = 'public'
     'profiles',
     'inquiries',
     'certifications',
+    'certificate_templates',
     'admin_content_items',
     'banners',
     'admin_publish_events'
@@ -62,6 +64,7 @@ Expected rows:
 - `admin_content_items`
 - `admin_publish_events`
 - `banners`
+- `certificate_templates`
 - `certifications`
 - `inquiries`
 - `profiles`
@@ -76,6 +79,7 @@ where schemaname = 'public'
     'profiles',
     'inquiries',
     'certifications',
+    'certificate_templates',
     'admin_content_items',
     'banners',
     'admin_publish_events'
@@ -100,6 +104,23 @@ where table_schema = 'public'
   and table_name in ('admin_content_items', 'banners')
   and column_name = 'image_url'
 order by table_name;
+```
+
+Check the certificate template contract:
+
+```sql
+select column_name, data_type
+from information_schema.columns
+where table_schema = 'public'
+  and table_name = 'certificate_templates'
+  and column_name in ('name', 'background_image_url', 'layout_json', 'status')
+order by column_name;
+
+select indexname
+from pg_indexes
+where schemaname = 'public'
+  and tablename = 'certificate_templates'
+  and indexname = 'certificate_templates_single_published_idx';
 ```
 
 ## Seed Sample Data
@@ -128,6 +149,11 @@ limit 5;
 select certificate_number, course_title, issued_at, status, verification_code
 from public.certifications
 order by issued_at desc
+limit 5;
+
+select name, background_image_url, status, updated_at
+from public.certificate_templates
+order by updated_at desc
 limit 5;
 ```
 

@@ -19,12 +19,31 @@ test("account certification download component builds a single PNG image downloa
   assert.match(source, /발급됨/);
   assert.match(source, /splitText/);
   assert.match(source, /renderTextLines/);
+  assert.match(source, /certificateTemplate/);
+  assert.match(source, /drawCertificateTemplateBackground/);
   assert.match(source, /한국건강관리사자격협회/);
   assert.doesNotMatch(source, /<text x="492" y="1150"/);
   assert.match(source, /이미지 다운로드/);
   assert.doesNotMatch(source, /export async function downloadCertificateSvg/);
   assert.doesNotMatch(source, /<span>SVG<\/span>/);
   assert.doesNotMatch(source, /<span>PNG<\/span>/);
+});
+
+test("certificate download accepts managed template settings with fallback", async () => {
+  const source = await readFile("src/components/CertificateDownloadActions.tsx", "utf8");
+  const accountDataSource = await readFile("src/lib/account-data.ts", "utf8");
+  const overviewPage = await readFile("src/app/[locale]/account/page.tsx", "utf8");
+  const certificationsPage = await readFile("src/app/[locale]/account/certifications/page.tsx", "utf8");
+
+  assert.match(accountDataSource, /getPublishedCertificateTemplate/);
+  assert.match(accountDataSource, /certificateTemplate/);
+  assert.match(source, /CertificateTemplate/);
+  assert.match(source, /backgroundImageUrl/);
+  assert.match(source, /layout\.holderName/);
+  assert.match(source, /buildManagedCertificateSvg/);
+  assert.match(source, /buildCertificateSvg\(certificate, holderName, logoDataUrl\)/);
+  assert.match(overviewPage, /certificateTemplate=\{accountData\.certificateTemplate\}/);
+  assert.match(certificationsPage, /certificateTemplate=\{accountData\.certificateTemplate\}/);
 });
 
 test("certificate SVG escapes the association name for valid XML rendering", async () => {

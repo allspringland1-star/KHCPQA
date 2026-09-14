@@ -2,6 +2,8 @@ import { getCopy, localeLabels, type Locale } from "@/lib/content";
 import { getCountryLabel } from "@/lib/countries";
 import { formatPhoneNumber } from "@/lib/phone";
 import { formatInquiryReceipt } from "@/lib/receipts";
+import { getPublishedCertificateTemplate } from "@/lib/admin-data";
+import type { CertificateTemplate } from "@/lib/admin-certifications";
 import { hasSupabaseBrowserEnv } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 
@@ -34,6 +36,7 @@ export type AccountInquiry = {
 };
 
 export type AccountData = {
+  certificateTemplate: CertificateTemplate | null;
   profileFields: Array<{ label: string; value: string }>;
   profileForm: ProfileFormValue;
   certificates: AccountCertificate[];
@@ -87,6 +90,7 @@ function emptyAccountData(locale: Locale, email?: string | null): AccountData {
   return {
     profileFields: profileData.profileFields,
     profileForm: profileData.profileForm,
+    certificateTemplate: null,
     certificates: [],
     inquiries: []
   };
@@ -158,7 +162,7 @@ export async function getAccountData(locale: Locale): Promise<AccountData> {
     return emptyAccountData(locale);
   }
 
-  const [{ data: profile }, { data: certificates }, { data: inquiries }] = await Promise.all([
+  const [{ data: profile }, { data: certificates }, { data: inquiries }, certificateTemplate] = await Promise.all([
     supabase
       .from("profiles")
       .select("email, full_name, phone, country, interested_course, marketing_opt_in, preferred_locale")
@@ -173,7 +177,8 @@ export async function getAccountData(locale: Locale): Promise<AccountData> {
       .from("inquiries")
       .select("id, inquiry_type, message, manager_note, created_at, status")
       .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
+      .order("created_at", { ascending: false }),
+    getPublishedCertificateTemplate()
   ]);
 
   const profileData = buildProfileData(locale, profile as ProfileRow | null, user.email);
@@ -181,6 +186,7 @@ export async function getAccountData(locale: Locale): Promise<AccountData> {
   return {
     profileFields: profileData.profileFields,
     profileForm: profileData.profileForm,
+    certificateTemplate,
     certificates: certificates ? (certificates as CertificateRow[]).map((certificate) => mapCertificate(locale, certificate)) : [],
     inquiries: inquiries ? (inquiries as InquiryRow[]).map((inquiry) => mapInquiry(locale, inquiry)) : []
   };

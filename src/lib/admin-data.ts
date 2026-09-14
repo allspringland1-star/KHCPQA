@@ -1,5 +1,9 @@
 import { formatInquiryReceipt } from "@/lib/receipts";
-import { formatAdminCertificationDate } from "@/lib/admin-certifications";
+import {
+  formatAdminCertificationDate,
+  normalizeCertificateTemplate,
+  type CertificateTemplate
+} from "@/lib/admin-certifications";
 import { formatPhoneNumber } from "@/lib/phone";
 import { hasSupabaseBrowserEnv } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
@@ -39,6 +43,11 @@ export type AdminCertificationRow = {
   user: string;
   userEmail: string;
   verificationCode: string;
+};
+
+export type AdminCertificateTemplateRow = CertificateTemplate & {
+  id: string;
+  updatedAt: string;
 };
 
 export type AdminInquiryRow = {
@@ -114,6 +123,15 @@ type CertificationRow = {
   status: string;
   user_id: string;
   verification_code: string | null;
+};
+
+type CertificateTemplateRow = {
+  background_image_url: string | null;
+  id: string;
+  layout_json: unknown;
+  name: string;
+  status: string;
+  updated_at: string;
 };
 
 type InquiryRow = {
@@ -259,6 +277,60 @@ export async function getAdminCertifications(): Promise<AdminCertificationRow[]>
     userEmail: profileById.get(certification.user_id)?.email ?? "",
     verificationCode: certification.verification_code || certification.certificate_number
   }));
+}
+
+function mapCertificateTemplate(row: CertificateTemplateRow): AdminCertificateTemplateRow {
+  const template = normalizeCertificateTemplate({
+    backgroundImageUrl: row.background_image_url || "",
+    layout: row.layout_json,
+    name: row.name,
+    status: row.status
+  });
+
+  return {
+    ...template,
+    id: row.id,
+    updatedAt: formatDate(row.updated_at)
+  };
+}
+
+export async function getAdminCertificateTemplate(): Promise<AdminCertificateTemplateRow | null> {
+  if (!hasSupabaseBrowserEnv()) {
+    return null;
+  }
+
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("certificate_templates")
+    .select("id, name, background_image_url, layout_json, status, updated_at")
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error || !data) {
+    return null;
+  }
+
+  return mapCertificateTemplate(data as CertificateTemplateRow);
+}
+
+export async function getPublishedCertificateTemplate(): Promise<CertificateTemplate | null> {
+  if (!hasSupabaseBrowserEnv()) {
+    return null;
+  }
+
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("certificate_templates")
+    .select("id, name, background_image_url, layout_json, status, updated_at")
+    .eq("status", "published")
+    .maybeSingle();
+
+  if (error || !data) {
+    return null;
+  }
+
+  return mapCertificateTemplate(data as CertificateTemplateRow);
 }
 
 export async function getAdminInquiries(): Promise<AdminInquiryRow[]> {

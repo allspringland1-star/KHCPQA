@@ -60,6 +60,19 @@
 | created_at | 생성일 |
 | updated_at | 수정일 |
 
+## certificate_templates
+
+| 필드 | 설명 |
+| --- | --- |
+| id | 고유 ID |
+| name | 템플릿 이름 |
+| background_image_url | 텍스트가 없는 자격증 배경 이미지 URL |
+| layout_json | 성명, 자격명, 자격번호, 발급일, 상태, 검증코드의 좌표/글자 설정 |
+| status | `draft`/`published`/`archived` |
+| created_by | 생성 관리자 |
+| created_at | 생성일 |
+| updated_at | 수정일 |
+
 ## inquiries
 
 | 필드 | 설명 |

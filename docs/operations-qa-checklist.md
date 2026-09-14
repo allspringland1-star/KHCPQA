@@ -21,7 +21,7 @@ GitHub Actions > Operations QA에서 `qa_base_url`을 입력해 같은 점검을
 | GitHub branch | Vercel production deployment가 `main`을 사용한다. |
 | 최신 커밋 | `/api/health`의 `commit`이 GitHub `main` 최신 커밋과 일치한다. |
 | 환경변수 | `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`가 Production에 등록되어 있다. |
-| DB 마이그레이션 | `202607220001_add_admin_image_urls.sql`까지 Supabase에 적용되어 있다. |
+| DB 마이그레이션 | `202609140001_create_certificate_templates.sql`까지 Supabase에 적용되어 있다. |
 | 공개 라우트 | `/ko`, `/ko/curriculum`, `/ko/activities/notice`, `/ko/login`, `/ko/signup`, `/robots.txt`, `/sitemap.xml`이 200으로 응답한다. |
 | 보호 라우트 | 비로그인 `/admin`, `/ko/account` 접근 시 로그인으로 이동한다. |
 
@@ -82,7 +82,17 @@ Supabase Dashboard > Authentication > URL Configuration에서 확인한다.
 - 과정 카드와 활동 카드 이미지 비율이 깨지지 않는다.
 - 관리자 표는 가로 스크롤로 읽을 수 있다.
 
-## 6. 마지막 단계: 실제 운영 데이터 입력
+## 6. 자격증 다운로드 디자인 확인
+
+| 확인 항목 | 완료 기준 |
+| --- | --- |
+| 템플릿 업로드 | `/admin/certifications`에서 텍스트 없는 자격증 배경 이미지를 업로드할 수 있다. |
+| 위치 조정 | 성명, 자격명, 자격번호, 발급일, 상태, 검증코드의 위치/크기/색상/정렬을 저장할 수 있다. |
+| 회원 다운로드 | `/ko/account/certifications`에서 다운로드한 PNG에 최신 자격 데이터가 합성된다. |
+| 기본 복원 | 기본 디자인으로 복원하면 업로드 배경 없이 기존 기본 자격증 디자인으로 다운로드된다. |
+| 권한 | `certification_manager` 또는 `super_admin`만 템플릿을 저장할 수 있다. |
+
+## 7. 마지막 단계: 실제 운영 데이터 입력
 
 아래 작업은 배포/Auth/법무/SNS/실기기 검수가 끝난 뒤 진행한다.
 
@@ -91,6 +101,7 @@ Supabase Dashboard > Authentication > URL Configuration에서 확인한다.
 | 관리자 게시글 | `/admin` 콘텐츠 등록/수정 | `docs/cms-section-guide.md` |
 | 교육과정 운영 문구 | `/admin` 교육과정 관리 | `docs/admin-cms.md` |
 | 자격 데이터 CSV | Supabase import 또는 관리자 자격 데이터 등록 | `docs/data-import-runbook.md` |
+| 자격증 디자인 | `/admin/certifications` 자격증 디자인 | 텍스트 없는 배경 이미지, 위치 조정 후 다운로드 확인 |
 | 배너/팝업 | `/admin` 팝업/배너 등록 | `docs/admin-cms.md` |
 | source URL | CMS `source_url` 필드 | `docs/source-url-inventory.md` |
 

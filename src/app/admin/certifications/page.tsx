@@ -1,6 +1,6 @@
 import { AdminConsoleShell, AdminPanel } from "@/components/AdminConsole";
 import { AdminCertificationsManager } from "@/components/AdminCertificationsManager";
-import { getAdminCertifications, getAdminCourses } from "@/lib/admin-data";
+import { getAdminCertificateTemplate, getAdminCertifications, getAdminCourses } from "@/lib/admin-data";
 import { getPublishedCourses } from "@/lib/course-repository";
 import type { CourseCategoryKey } from "@/lib/course-model";
 
@@ -11,10 +11,11 @@ const categoryLabels: Record<CourseCategoryKey, string> = {
 };
 
 export default async function AdminCertificationsPage() {
-  const [certifications, adminCourses, publishedCourses] = await Promise.all([
+  const [certifications, adminCourses, publishedCourses, certificateTemplate] = await Promise.all([
     getAdminCertifications(),
     getAdminCourses(),
-    getPublishedCourses("ko")
+    getPublishedCourses("ko"),
+    getAdminCertificateTemplate()
   ]);
   const adminCourseOptions = adminCourses
     .filter((course) => course.isActive)
@@ -37,7 +38,11 @@ export default async function AdminCertificationsPage() {
       title="자격 데이터"
     >
       <AdminPanel className="admin-certifications-panel">
-        <AdminCertificationsManager certifications={certifications} courseOptions={courseOptions} />
+        <AdminCertificationsManager
+          certificateTemplate={certificateTemplate}
+          certifications={certifications}
+          courseOptions={courseOptions}
+        />
       </AdminPanel>
     </AdminConsoleShell>
   );

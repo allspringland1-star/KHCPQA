@@ -4,9 +4,11 @@ import { useEffect, useState } from "react";
 import { Eye, FileImage, LoaderCircle, X } from "lucide-react";
 import NextImage from "next/image";
 import type { AccountCertificate } from "@/lib/account-data";
+import type { CertificateTemplate } from "@/lib/admin-certifications";
 
 type CertificateDownloadActionsProps = {
   certificate: AccountCertificate;
+  certificateTemplate?: CertificateTemplate | null;
   holderName?: string;
   variant?: "compact" | "full";
 };
@@ -108,7 +110,7 @@ function renderTextLines(lines: string[], options: {
   fontStyle?: string;
   fontWeight?: number;
   lineHeight: number;
-  textAnchor?: "middle" | "start";
+  textAnchor?: "end" | "middle" | "start";
   x: number;
   y: number;
 }) {
@@ -131,6 +133,19 @@ function renderTextLines(lines: string[], options: {
       return `<tspan x="${options.x}" dy="${dy}">${escapeXml(line)}</tspan>`;
     })
     .join("")}</text>`;
+}
+
+function renderManagedText(value: string, field: CertificateTemplate["layout"]["holderName"], maxLength: number, maxLines = 2) {
+  return renderTextLines(splitText(value, maxLength, maxLines), {
+    color: field.color,
+    fontFamily: "Malgun Gothic, Apple SD Gothic Neo, Arial, sans-serif",
+    fontSize: field.fontSize,
+    fontWeight: field.fontWeight,
+    lineHeight: Math.round(field.fontSize * 1.2),
+    textAnchor: field.align,
+    x: field.x,
+    y: field.y
+  });
 }
 
 async function loadCertificateLogoDataUrl() {
@@ -238,6 +253,89 @@ export function buildCertificateSvg(certificate: AccountCertificate, holderName?
 </svg>`;
 }
 
+export function buildManagedCertificateSvg(certificate: AccountCertificate, holderName: string | undefined, certificateTemplate: CertificateTemplate) {
+  const data = toExportData(certificate, holderName);
+  const layout = certificateTemplate.layout;
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${certificateSize.width}" height="${certificateSize.height}" viewBox="0 0 ${certificateSize.width} ${certificateSize.height}" role="img" aria-label="${escapeXml(data.courseTitle)} managed qualification certificate">
+  <rect width="${certificateSize.width}" height="${certificateSize.height}" fill="#fff"/>
+  <image href="${escapeXml(certificateTemplate.backgroundImageUrl)}" x="0" y="0" width="${certificateSize.width}" height="${certificateSize.height}" preserveAspectRatio="xMidYMid slice"/>
+  ${renderManagedText(data.holderName, layout.holderName, 18, 2)}
+  ${renderManagedText(data.courseTitle, layout.courseTitle, 18, 2)}
+  ${renderManagedText(data.number, layout.certificateNumber, 24, 2)}
+  ${renderManagedText(data.issuedAt, layout.issuedAt, 24, 1)}
+  ${renderManagedText(data.status, layout.status, 16, 1)}
+  ${renderManagedText(data.verificationCode, layout.verificationCode, 28, 1)}
+</svg>`;
+}
+
+async function loadImageElement(src: string) {
+  const image = new Image();
+  image.crossOrigin = "anonymous";
+
+  await new Promise<void>((resolve, reject) => {
+    image.onload = () => resolve();
+    image.onerror = () => reject(new Error("Image could not be loaded."));
+    image.src = src;
+  });
+
+  return image;
+}
+
+export async function drawCertificateTemplateBackground(context: CanvasRenderingContext2D, certificateTemplate: CertificateTemplate) {
+  const background = await loadImageElement(certificateTemplate.backgroundImageUrl);
+  context.drawImage(background, 0, 0, certificateSize.width, certificateSize.height);
+}
+
+function drawTemplateText(context: CanvasRenderingContext2D, value: string, field: CertificateTemplate["layout"]["holderName"], maxLength: number, maxLines = 2) {
+  const lines = splitText(value, maxLength, maxLines);
+  context.fillStyle = field.color;
+  context.font = `${field.fontWeight} ${field.fontSize}px "Malgun Gothic", "Apple SD Gothic Neo", Arial, sans-serif`;
+  context.textAlign = field.align === "middle" ? "center" : field.align === "end" ? "right" : "left";
+  context.textBaseline = "alphabetic";
+
+  lines.forEach((line, index) => {
+    context.fillText(line, field.x, field.y + index * Math.round(field.fontSize * 1.2));
+  });
+}
+
+async function downloadManagedCertificatePng(certificate: AccountCertificate, holderName: string | undefined, certificateTemplate: CertificateTemplate) {
+  const canvas = document.createElement("canvas");
+  canvas.width = certificateSize.width;
+  canvas.height = certificateSize.height;
+  const context = canvas.getContext("2d");
+
+  if (!context) {
+    throw new Error("Canvas is not available.");
+  }
+
+  context.fillStyle = "#ffffff";
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  await drawCertificateTemplateBackground(context, certificateTemplate);
+
+  const data = toExportData(certificate, holderName);
+  const layout = certificateTemplate.layout;
+  drawTemplateText(context, data.holderName, layout.holderName, 18, 2);
+  drawTemplateText(context, data.courseTitle, layout.courseTitle, 18, 2);
+  drawTemplateText(context, data.number, layout.certificateNumber, 24, 2);
+  drawTemplateText(context, data.issuedAt, layout.issuedAt, 24, 1);
+  drawTemplateText(context, data.status, layout.status, 16, 1);
+  drawTemplateText(context, data.verificationCode, layout.verificationCode, 28, 1);
+
+  const blob = await new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((result) => {
+      if (result) {
+        resolve(result);
+        return;
+      }
+      reject(new Error("PNG export failed."));
+    }, "image/png");
+  });
+
+  downloadBlob(filenameFor(certificate, "png"), blob);
+}
+
 function downloadBlob(filename: string, blob: Blob) {
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
@@ -254,7 +352,16 @@ function filenameFor(certificate: AccountCertificate, extension: "png" | "svg") 
   return `${baseName}.${extension}`;
 }
 
-export async function downloadCertificatePng(certificate: AccountCertificate, holderName?: string) {
+export async function downloadCertificatePng(certificate: AccountCertificate, holderName?: string, certificateTemplate?: CertificateTemplate | null) {
+  if (certificateTemplate?.backgroundImageUrl) {
+    try {
+      await downloadManagedCertificatePng(certificate, holderName, certificateTemplate);
+      return;
+    } catch {
+      // Fall through to the built-in certificate when the managed image cannot load.
+    }
+  }
+
   const logoDataUrl = await getSafeCertificateLogoDataUrl();
   const svg = buildCertificateSvg(certificate, holderName, logoDataUrl);
   const svgUrl = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }));
@@ -299,6 +406,7 @@ export async function downloadCertificatePng(certificate: AccountCertificate, ho
 
 export function CertificateDownloadActions({
   certificate,
+  certificateTemplate,
   holderName,
   variant = "full"
 }: CertificateDownloadActionsProps) {
@@ -307,7 +415,7 @@ export function CertificateDownloadActions({
   async function handlePngDownload() {
     setMessage("");
     try {
-      await downloadCertificatePng(certificate, holderName);
+      await downloadCertificatePng(certificate, holderName, certificateTemplate);
     } catch {
       setMessage("이미지 파일을 준비하지 못했습니다. 다시 시도해 주세요.");
     }
@@ -326,6 +434,7 @@ export function CertificateDownloadActions({
 
 export function CertificateImageViewer({
   certificate,
+  certificateTemplate,
   holderName
 }: Omit<CertificateDownloadActionsProps, "variant">) {
   const [isOpen, setIsOpen] = useState(false);
@@ -345,7 +454,9 @@ export function CertificateImageViewer({
 
       try {
         const logoDataUrl = await getSafeCertificateLogoDataUrl();
-        const svg = buildCertificateSvg(certificate, holderName, logoDataUrl);
+        const svg = certificateTemplate?.backgroundImageUrl
+          ? buildManagedCertificateSvg(certificate, holderName, certificateTemplate)
+          : buildCertificateSvg(certificate, holderName, logoDataUrl);
         const dataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 
         if (!isCancelled) {
@@ -369,7 +480,7 @@ export function CertificateImageViewer({
       isCancelled = true;
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [certificate, holderName, isOpen]);
+  }, [certificate, certificateTemplate, holderName, isOpen]);
 
   return (
     <>
@@ -430,7 +541,7 @@ export function CertificateImageViewer({
             </div>
 
             <footer className="certificate-preview-actions">
-              <CertificateDownloadActions certificate={certificate} holderName={holderName} />
+              <CertificateDownloadActions certificate={certificate} certificateTemplate={certificateTemplate} holderName={holderName} />
               <button className="secondary-button" onClick={() => setIsOpen(false)} type="button">닫기</button>
             </footer>
           </section>

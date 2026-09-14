@@ -49,6 +49,7 @@ export default async function AccountPage({ params }: { params: Promise<{ locale
                 <em>{certificate.status}</em>
                 <CertificateDownloadActions
                   certificate={certificate}
+                  certificateTemplate={accountData.certificateTemplate}
                   holderName={accountData.profileForm.name}
                   variant="compact"
                 />

@@ -60,6 +60,7 @@ export default async function AccountCertificationsPage({ params }: { params: Pr
                   </dl>
                   <CertificateDownloadActions
                     certificate={certificate}
+                    certificateTemplate={accountData.certificateTemplate}
                     holderName={accountData.profileForm.name}
                   />
                 </article>

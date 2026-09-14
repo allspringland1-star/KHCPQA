@@ -18,9 +18,35 @@ async function importTsModule(path) {
 
 const {
   buildAdminCertificationPayload,
+  normalizeCertificateTemplate,
   formatAdminCertificationDate,
   getAdminCertificationStatusLabel
 } = await importTsModule("src/lib/admin-certifications.ts");
+
+test("normalizeCertificateTemplate preserves uploaded background and layout controls", () => {
+  const result = normalizeCertificateTemplate({
+    backgroundImageUrl: " https://example.com/certificate.png ",
+    name: " 기본 자격증 ",
+    status: "published",
+    layout: {
+      holderName: { x: 450, y: 520, fontSize: 34, color: "#123abc", align: "middle" },
+      courseTitle: { x: 450, y: 620, fontSize: 28, color: "#222222", align: "middle" }
+    }
+  });
+
+  assert.equal(result.name, "기본 자격증");
+  assert.equal(result.backgroundImageUrl, "https://example.com/certificate.png");
+  assert.equal(result.status, "published");
+  assert.deepEqual(result.layout.holderName, {
+    align: "middle",
+    color: "#123abc",
+    fontSize: 34,
+    fontWeight: 760,
+    x: 450,
+    y: 520
+  });
+  assert.equal(result.layout.certificateNumber.x, 325);
+});
 
 test("buildAdminCertificationPayload normalizes required certificate fields", () => {
   const result = buildAdminCertificationPayload({
@@ -84,6 +110,8 @@ test("AdminCertificationsManager connects the new certification form to the save
   const managerSource = await readFile("src/components/AdminCertificationsManager.tsx", "utf8");
 
   assert.match(pageSource, /AdminCertificationsManager/);
+  assert.match(pageSource, /getAdminCertificateTemplate/);
+  assert.match(pageSource, /certificateTemplate=\{certificateTemplate\}/);
   assert.match(pageSource, /admin-certifications-panel/);
   assert.match(pageSource, /getAdminCourses/);
   assert.match(pageSource, /course\.isActive/);
@@ -99,6 +127,25 @@ test("AdminCertificationsManager connects the new certification form to the save
   assert.match(managerSource, /name="certificateNumber"/);
   assert.match(managerSource, /name="issuedAt"/);
   assert.match(managerSource, /name="verificationCode"/);
+});
+
+test("AdminCertificationsManager exposes certificate template upload and layout settings", async () => {
+  const migrationSource = await readFile("supabase/migrations/202609140001_create_certificate_templates.sql", "utf8");
+  const actionSource = await readFile("src/app/admin/actions.ts", "utf8");
+  const managerSource = await readFile("src/components/AdminCertificationsManager.tsx", "utf8");
+  const dataSource = await readFile("src/lib/admin-data.ts", "utf8");
+
+  assert.match(migrationSource, /create table if not exists public\.certificate_templates/);
+  assert.match(migrationSource, /layout_json jsonb not null/);
+  assert.match(migrationSource, /certificate_templates_single_published_idx/);
+  assert.match(migrationSource, /certification_manager/);
+  assert.match(actionSource, /uploadAdminCertificateTemplateImage/);
+  assert.match(actionSource, /saveAdminCertificateTemplate/);
+  assert.match(dataSource, /getAdminCertificateTemplate/);
+  assert.match(managerSource, /자격증 디자인/);
+  assert.match(managerSource, /name="certificateTemplateImage"/);
+  assert.match(managerSource, /templateLayoutFieldLabels/);
+  assert.match(managerSource, /기본 위치로 초기화/);
 });
 
 test("AdminCertificationsManager can open existing certifications for editing", async () => {

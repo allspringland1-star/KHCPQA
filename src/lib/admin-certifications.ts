@@ -1,6 +1,34 @@
 export const adminCertificationStatuses = ["issued", "expired", "revoked"] as const;
+export const certificateTemplateStatuses = ["draft", "published", "archived"] as const;
 
 export type AdminCertificationStatus = (typeof adminCertificationStatuses)[number];
+export type CertificateTemplateStatus = (typeof certificateTemplateStatuses)[number];
+
+export type CertificateTemplateLayoutFieldKey =
+  | "certificateNumber"
+  | "courseTitle"
+  | "issuedAt"
+  | "status"
+  | "verificationCode"
+  | "holderName";
+
+export type CertificateTemplateLayoutField = {
+  align: "middle" | "start" | "end";
+  color: string;
+  fontSize: number;
+  fontWeight: number;
+  x: number;
+  y: number;
+};
+
+export type CertificateTemplateLayout = Record<CertificateTemplateLayoutFieldKey, CertificateTemplateLayoutField>;
+
+export type CertificateTemplate = {
+  backgroundImageUrl: string;
+  layout: CertificateTemplateLayout;
+  name: string;
+  status: CertificateTemplateStatus;
+};
 
 export type AdminCertificationInput = {
   adminNote?: string;
@@ -23,6 +51,65 @@ export type AdminCertificationPayload = {
   userEmail: string;
   verificationCode: string;
 };
+
+export const defaultCertificateTemplateLayout: CertificateTemplateLayout = {
+  certificateNumber: { align: "start", color: "#1f1a28", fontSize: 23, fontWeight: 760, x: 325, y: 690 },
+  courseTitle: { align: "start", color: "#1f1a28", fontSize: 27, fontWeight: 790, x: 325, y: 604 },
+  holderName: { align: "start", color: "#1f1a28", fontSize: 26, fontWeight: 760, x: 325, y: 524 },
+  issuedAt: { align: "start", color: "#1f1a28", fontSize: 23, fontWeight: 760, x: 325, y: 760 },
+  status: { align: "start", color: "#0d6b35", fontSize: 23, fontWeight: 820, x: 325, y: 824 },
+  verificationCode: { align: "middle", color: "#756b7f", fontSize: 13, fontWeight: 800, x: 690, y: 136 }
+};
+
+const templateLayoutKeys = Object.keys(defaultCertificateTemplateLayout) as CertificateTemplateLayoutFieldKey[];
+
+function isTemplateStatus(value: string): value is CertificateTemplateStatus {
+  return certificateTemplateStatuses.includes(value as CertificateTemplateStatus);
+}
+
+function cleanNumber(value: unknown, fallback: number, min: number, max: number) {
+  const next = typeof value === "number" ? value : Number(value);
+
+  if (!Number.isFinite(next)) {
+    return fallback;
+  }
+
+  return Math.min(max, Math.max(min, Math.round(next)));
+}
+
+function cleanColor(value: unknown, fallback: string) {
+  return typeof value === "string" && /^#[0-9a-fA-F]{6}$/.test(value.trim()) ? value.trim() : fallback;
+}
+
+function cleanAlign(value: unknown, fallback: CertificateTemplateLayoutField["align"]) {
+  return value === "middle" || value === "start" || value === "end" ? value : fallback;
+}
+
+export function normalizeCertificateTemplate(value: unknown): CertificateTemplate {
+  const source = value && typeof value === "object" ? value as Partial<CertificateTemplate> : {};
+  const layoutSource = source.layout && typeof source.layout === "object" ? source.layout as Partial<CertificateTemplateLayout> : {};
+  const layout = Object.fromEntries(templateLayoutKeys.map((key) => {
+    const fallback = defaultCertificateTemplateLayout[key];
+    const current = layoutSource[key] && typeof layoutSource[key] === "object" ? layoutSource[key] as Partial<CertificateTemplateLayoutField> : {};
+
+    return [key, {
+      align: cleanAlign(current.align, fallback.align),
+      color: cleanColor(current.color, fallback.color),
+      fontSize: cleanNumber(current.fontSize, fallback.fontSize, 8, 96),
+      fontWeight: cleanNumber(current.fontWeight, fallback.fontWeight, 300, 900),
+      x: cleanNumber(current.x, fallback.x, 0, 900),
+      y: cleanNumber(current.y, fallback.y, 0, 1272)
+    }];
+  })) as CertificateTemplateLayout;
+  const status = typeof source.status === "string" && isTemplateStatus(source.status) ? source.status : "draft";
+
+  return {
+    backgroundImageUrl: typeof source.backgroundImageUrl === "string" ? source.backgroundImageUrl.trim() : "",
+    layout,
+    name: typeof source.name === "string" && source.name.trim() ? source.name.trim() : "기본 자격증 디자인",
+    status
+  };
+}
 
 type ValidationResult<T> =
   | {
