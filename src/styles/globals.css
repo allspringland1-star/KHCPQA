@@ -11724,8 +11724,10 @@ p {
 }
 
 .admin-certificate-template-workspace {
+  align-content: start;
+  align-self: start;
   display: grid;
-  gap: 14px;
+  gap: 12px;
   min-width: 0;
 }
 
@@ -11798,6 +11800,7 @@ p {
 }
 
 .admin-certificate-template-field-tabs {
+  align-self: start;
   background: #f8f6fd;
   border: 1px solid var(--console-line);
   border-radius: 8px;
@@ -11818,7 +11821,7 @@ p {
   justify-content: center;
   font-size: 11px;
   font-weight: 900;
-  min-height: 28px;
+  min-height: 30px;
   padding: 0 7px;
 }
 
@@ -11836,20 +11839,22 @@ p {
 }
 
 .admin-certificate-template-layout {
+  align-self: start;
   display: grid;
   gap: 8px;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 520px), 1fr));
 }
 
 .admin-certificate-template-layout fieldset {
+  align-items: end;
   background: #ffffff;
   border: 1px solid var(--console-line);
   border-radius: 8px;
   display: grid;
-  gap: 10px;
-  grid-template-columns: repeat(3, minmax(150px, 1fr)) 78px;
+  gap: 8px;
+  grid-template-columns: repeat(3, minmax(150px, 1fr)) 64px;
   margin: 0;
-  padding: 10px 12px 12px;
+  padding: 8px 10px 10px;
 }
 
 .admin-certificate-template-layout legend {
@@ -11869,15 +11874,15 @@ p {
 
 .admin-certificate-template-layout input[type="color"] {
   align-self: end;
-  height: 34px;
+  height: 32px;
   min-width: 44px;
   padding: 3px;
-  width: 52px;
+  width: 48px;
 }
 
 .admin-certificate-template-field-range {
   align-content: end;
-  grid-template-columns: minmax(120px, 1fr) 128px;
+  grid-template-columns: minmax(118px, 1fr) 116px;
 }
 
 .admin-certificate-template-field-range > span {
@@ -11897,8 +11902,8 @@ p {
 
 .admin-certificate-template-stepper {
   display: grid;
-  gap: 3px;
-  grid-template-columns: 26px minmax(0, 1fr) 26px;
+  gap: 2px;
+  grid-template-columns: 24px minmax(0, 1fr) 24px;
 }
 
 .admin-certificate-template-stepper button {
@@ -11910,12 +11915,12 @@ p {
   cursor: pointer;
   display: inline-flex;
   justify-content: center;
-  min-height: 34px;
+  min-height: 32px;
   padding: 0;
 }
 
 .admin-certificate-template-stepper input[type="number"] {
-  min-height: 34px;
+  min-height: 32px;
   padding: 0 8px;
   text-align: center;
 }
