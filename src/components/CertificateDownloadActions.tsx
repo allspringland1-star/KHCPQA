@@ -416,33 +416,7 @@ function filenameFor(certificate: AccountCertificate, extension: "png" | "svg") 
   return `${baseName}.${extension}`;
 }
 
-async function buildCertificatePreviewDataUrl(
-  certificate: AccountCertificate,
-  holderName?: string,
-  certificateTemplate?: CertificateTemplate | null,
-  options: { useTemplateLayout?: boolean } = {}
-) {
-  const logoDataUrl = await getSafeCertificateLogoDataUrl();
-  const useTemplateLayout = options.useTemplateLayout ?? false;
-  const svg = certificateTemplate && (useTemplateLayout || certificateTemplate.backgroundImageUrl)
-    ? buildTemplatePreviewCertificateSvg(certificate, holderName, certificateTemplate, logoDataUrl)
-    : buildCertificateSvg(certificate, holderName, logoDataUrl);
-
-  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
-}
-
-export async function downloadCertificatePng(certificate: AccountCertificate, holderName?: string, certificateTemplate?: CertificateTemplate | null) {
-  if (certificateTemplate?.backgroundImageUrl) {
-    try {
-      await downloadManagedCertificatePng(certificate, holderName, certificateTemplate);
-      return;
-    } catch {
-      // Fall through to the built-in certificate when the managed image cannot load.
-    }
-  }
-
-  const logoDataUrl = await getSafeCertificateLogoDataUrl();
-  const svg = buildCertificateSvg(certificate, holderName, logoDataUrl);
+async function downloadCertificateSvgAsPng(certificate: AccountCertificate, svg: string) {
   const svgUrl = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }));
   const image = new Image();
   const scale = 2;
@@ -481,6 +455,42 @@ export async function downloadCertificatePng(certificate: AccountCertificate, ho
   } finally {
     URL.revokeObjectURL(svgUrl);
   }
+}
+
+async function buildCertificatePreviewDataUrl(
+  certificate: AccountCertificate,
+  holderName?: string,
+  certificateTemplate?: CertificateTemplate | null,
+  options: { useTemplateLayout?: boolean } = {}
+) {
+  const logoDataUrl = await getSafeCertificateLogoDataUrl();
+  const useTemplateLayout = options.useTemplateLayout ?? false;
+  const svg = certificateTemplate && (useTemplateLayout || certificateTemplate.backgroundImageUrl)
+    ? buildTemplatePreviewCertificateSvg(certificate, holderName, certificateTemplate, logoDataUrl)
+    : buildCertificateSvg(certificate, holderName, logoDataUrl);
+
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}
+
+export async function downloadCertificatePng(certificate: AccountCertificate, holderName?: string, certificateTemplate?: CertificateTemplate | null) {
+  const logoDataUrl = await getSafeCertificateLogoDataUrl();
+
+  if (certificateTemplate?.backgroundImageUrl) {
+    try {
+      await downloadManagedCertificatePng(certificate, holderName, certificateTemplate);
+      return;
+    } catch {
+      // Fall through to the SVG renderer when the managed image cannot load.
+    }
+  }
+
+  if (certificateTemplate) {
+    const svg = buildTemplatePreviewCertificateSvg(certificate, holderName, certificateTemplate, logoDataUrl);
+    await downloadCertificateSvgAsPng(certificate, svg);
+    return;
+  }
+
+  await downloadCertificateSvgAsPng(certificate, buildCertificateSvg(certificate, holderName, logoDataUrl));
 }
 
 export function CertificateDownloadActions({

@@ -57,6 +57,16 @@ test("admin certificate preview applies template coordinates even without an upl
   assert.doesNotMatch(source, /certificateTemplate\?\.backgroundImageUrl\s*\?\s*buildManagedCertificateSvg\(certificate, holderName, certificateTemplate\)\s*:\s*buildCertificateSvg\(certificate, holderName, logoDataUrl\)/s);
 });
 
+test("certificate PNG download applies saved template coordinates without uploaded background", async () => {
+  const source = await readFile("src/components/CertificateDownloadActions.tsx", "utf8");
+
+  assert.match(source, /downloadCertificateSvgAsPng/);
+  assert.match(source, /buildTemplatePreviewCertificateSvg\(certificate, holderName, certificateTemplate, logoDataUrl\)/);
+  assert.match(source, /if \(certificateTemplate\) \{/);
+  assert.match(source, /await downloadCertificateSvgAsPng\(certificate, svg\)/);
+  assert.doesNotMatch(source, /const svg = buildCertificateSvg\(certificate, holderName, logoDataUrl\);/);
+});
+
 test("certificate SVG escapes the association name for valid XML rendering", async () => {
   const source = await readFile("src/components/CertificateDownloadActions.tsx", "utf8");
 
