@@ -318,3 +318,10 @@ test("admin certification rows can open the generated certificate image", async 
   assert.match(styleSource, /\.certificate-preview-dialog/);
   assert.match(styleSource, /\.certificate-preview-image/);
 });
+
+test("certificate preview modal stays above admin page controls", async () => {
+  const styleSource = await readFile("src/styles/globals.css", "utf8");
+
+  assert.match(styleSource, /\.certificate-preview-backdrop\s*\{[^}]*position: fixed[^}]*z-index: 1500/s);
+  assert.match(styleSource, /\.certificate-preview-dialog\s*\{[^}]*position: relative[^}]*z-index: 1501/s);
+});
