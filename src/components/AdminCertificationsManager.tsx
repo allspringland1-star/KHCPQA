@@ -342,6 +342,7 @@ export function AdminCertificationsManager({
     startTemplateTransition(async () => {
       try {
         let backgroundImageUrl = templateValue.backgroundImageUrl;
+        let didUploadImage = false;
 
         if (imageFile instanceof File && imageFile.size > 0) {
           const uploadData = new FormData();
@@ -354,7 +355,7 @@ export function AdminCertificationsManager({
           }
 
           backgroundImageUrl = uploadResult.url;
-          setTemplateImageMessage(uploadResult.message);
+          didUploadImage = true;
         }
 
         const nextTemplate = {
@@ -362,7 +363,11 @@ export function AdminCertificationsManager({
           backgroundImageUrl
         };
         const nextResult = await saveAdminCertificateTemplate(nextTemplate);
-        setTemplateResult(nextResult);
+        setTemplateResult(
+          nextResult.ok && didUploadImage
+            ? { ok: true, message: "자격증 디자인 이미지와 설정이 저장되었습니다." }
+            : nextResult
+        );
 
         if (nextResult.ok) {
           setTemplateValue(nextTemplate);
