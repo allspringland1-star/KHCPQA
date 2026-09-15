@@ -14,30 +14,35 @@ create unique index if not exists certificate_templates_single_published_idx
 on public.certificate_templates ((status))
 where status = 'published';
 
+drop trigger if exists set_certificate_templates_updated_at on public.certificate_templates;
 create trigger set_certificate_templates_updated_at
 before update on public.certificate_templates
 for each row execute function public.set_updated_at();
 
 alter table public.certificate_templates enable row level security;
 
+drop policy if exists "certificate_templates_select_admin" on public.certificate_templates;
 create policy "certificate_templates_select_admin"
 on public.certificate_templates
 for select
 to authenticated
 using (public.has_admin_role(array['certification_manager', 'super_admin']));
 
+drop policy if exists "certificate_templates_select_published" on public.certificate_templates;
 create policy "certificate_templates_select_published"
 on public.certificate_templates
 for select
 to anon, authenticated
 using (status = 'published');
 
+drop policy if exists "certificate_templates_insert_manager" on public.certificate_templates;
 create policy "certificate_templates_insert_manager"
 on public.certificate_templates
 for insert
 to authenticated
 with check (public.has_admin_role(array['certification_manager', 'super_admin']));
 
+drop policy if exists "certificate_templates_update_manager" on public.certificate_templates;
 create policy "certificate_templates_update_manager"
 on public.certificate_templates
 for update

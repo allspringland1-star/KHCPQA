@@ -11535,6 +11535,49 @@ p {
   display: grid;
   gap: 18px;
   padding: 18px;
+  position: relative;
+}
+
+.admin-certificate-template-saving-layer {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.82);
+  border-radius: 8px;
+  color: var(--console-ink);
+  display: grid;
+  gap: 8px;
+  inset: 0;
+  justify-items: center;
+  min-height: 220px;
+  padding: 24px;
+  position: absolute;
+  text-align: center;
+  z-index: 8;
+}
+
+.admin-certificate-template-saving-layer strong {
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.admin-certificate-template-saving-layer span:last-child {
+  color: var(--console-muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.admin-certificate-template-saving-spinner {
+  animation: admin-certificate-template-spin 0.8s linear infinite;
+  border: 3px solid #ded5f5;
+  border-radius: 999px;
+  border-top-color: var(--console-purple);
+  height: 34px;
+  width: 34px;
+}
+
+@keyframes admin-certificate-template-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .admin-certificate-template-heading {

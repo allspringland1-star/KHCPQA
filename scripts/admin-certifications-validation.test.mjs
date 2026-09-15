@@ -192,12 +192,45 @@ test("certificate template editor owns validation and alignment controls", async
   const managerSource = await readFile("src/components/AdminCertificationsManager.tsx", "utf8");
   const styleSource = await readFile("src/styles/globals.css", "utf8");
 
-  assert.match(managerSource, /<form className="admin-certificate-template-panel" noValidate onSubmit=\{handleTemplateSubmit\}>/);
+  assert.match(managerSource, /className="admin-certificate-template-panel"/);
+  assert.match(managerSource, /noValidate/);
+  assert.match(managerSource, /onSubmit=\{handleTemplateSubmit\}/);
   assert.match(managerSource, /admin-certificate-template-align-options/);
   assert.match(managerSource, /aria-pressed=\{field\.align === option\.value\}/);
   assert.doesNotMatch(managerSource, /<select onChange=\{\(event\) => updateTemplateLayoutField\(key, "align"/);
   assert.match(styleSource, /\.admin-certificate-template-align-options/);
   assert.match(styleSource, /\.admin-certificate-template-align-options button\.is-active/);
+});
+
+test("certificate template save reports a migration hint when the database table is missing", async () => {
+  const actionSource = await readFile("src/app/admin/actions.ts", "utf8");
+
+  assert.match(actionSource, /formatCertificateTemplateSaveError/);
+  assert.match(actionSource, /certificate_templates/);
+  assert.match(actionSource, /schema cache/);
+  assert.match(actionSource, /202609140001_create_certificate_templates\.sql/);
+  assert.match(actionSource, /archiveError/);
+  assert.match(actionSource, /formatCertificateTemplateSaveError\(archiveError\)/);
+  assert.match(actionSource, /formatCertificateTemplateSaveError\(error\)/);
+  assert.doesNotMatch(actionSource, /return \{ ok: false, message: archiveError\.message \};/);
+});
+
+test("certificate template save shows a blocking loading layer while applying changes", async () => {
+  const managerSource = await readFile("src/components/AdminCertificationsManager.tsx", "utf8");
+  const styleSource = await readFile("src/styles/globals.css", "utf8");
+
+  assert.match(managerSource, /isTemplateSaving/);
+  assert.match(managerSource, /setIsTemplateSaving\(true\)/);
+  assert.match(managerSource, /setIsTemplateSaving\(false\)/);
+  assert.match(managerSource, /admin-certificate-template-saving-layer/);
+  assert.match(managerSource, /role="status"/);
+  assert.match(managerSource, /aria-busy=\{isTemplateSaving\}/);
+  assert.match(managerSource, /저장 중입니다/);
+  assert.match(managerSource, /disabled=\{isTemplateSaving \|\| isTemplatePending\}/);
+  assert.match(styleSource, /\.admin-certificate-template-panel\s*\{[^}]*position: relative/s);
+  assert.match(styleSource, /\.admin-certificate-template-saving-layer/);
+  assert.match(styleSource, /\.admin-certificate-template-saving-spinner/);
+  assert.match(styleSource, /@keyframes admin-certificate-template-spin/);
 });
 
 test("AdminCertificationsManager can open existing certifications for editing", async () => {

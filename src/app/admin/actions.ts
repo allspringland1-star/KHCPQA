@@ -537,6 +537,26 @@ function canManageCertificateTemplate(role: string, status: string) {
   return ["certification_manager", "super_admin"].includes(role) && status === "active";
 }
 
+function isMissingCertificateTemplateTableError(error: { code?: string; details?: string; message?: string } | null) {
+  const text = [error?.code, error?.message, error?.details].filter(Boolean).join(" ");
+
+  return (
+    /certificate_templates/i.test(text) &&
+    /(schema cache|could not find|relation .* does not exist|PGRST205|42P01)/i.test(text)
+  );
+}
+
+function formatCertificateTemplateSaveError(error: { code?: string; details?: string; message?: string } | null) {
+  if (isMissingCertificateTemplateTableError(error)) {
+    return (
+      "자격증 템플릿 DB 테이블이 아직 적용되지 않았습니다. " +
+      "Supabase SQL Editor에서 supabase/migrations/202609140001_create_certificate_templates.sql 마이그레이션을 실행한 뒤 다시 저장해 주세요."
+    );
+  }
+
+  return error?.message ?? "자격증 디자인 설정을 저장할 수 없습니다.";
+}
+
 export async function updateAdminUserRole(input: {
   role: string;
   status: string;
@@ -820,7 +840,7 @@ export async function saveAdminCertificateTemplate(input: unknown): Promise<Save
       .eq("status", "published");
 
     if (archiveError) {
-      return { ok: false, message: archiveError.message };
+      return { ok: false, message: formatCertificateTemplateSaveError(archiveError) };
     }
   }
 
@@ -833,7 +853,7 @@ export async function saveAdminCertificateTemplate(input: unknown): Promise<Save
   });
 
   if (error) {
-    return { ok: false, message: error.message };
+    return { ok: false, message: formatCertificateTemplateSaveError(error) };
   }
 
   revalidatePath("/admin");

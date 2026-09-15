@@ -108,6 +108,7 @@ export function AdminCertificationsManager({
   const [templateResult, setTemplateResult] = useState<SaveAdminCertificationResult | null>(null);
   const [templateImageMessage, setTemplateImageMessage] = useState("");
   const [selectedTemplateField, setSelectedTemplateField] = useState<CertificateTemplateLayoutFieldKey>("holderName");
+  const [isTemplateSaving, setIsTemplateSaving] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [isTemplatePending, startTemplateTransition] = useTransition();
   const issuedCount = certifications.filter((certification) => certification.status === "issued").length;
@@ -252,53 +253,75 @@ export function AdminCertificationsManager({
 
   function handleTemplateSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (isTemplateSaving) {
+      return;
+    }
+
     const formData = new FormData(event.currentTarget);
     const imageFile = formData.get("certificateTemplateImage");
     setTemplateResult(null);
     setTemplateImageMessage("");
+    setIsTemplateSaving(true);
 
     startTemplateTransition(async () => {
-      let backgroundImageUrl = templateValue.backgroundImageUrl;
+      try {
+        let backgroundImageUrl = templateValue.backgroundImageUrl;
 
-      if (imageFile instanceof File && imageFile.size > 0) {
-        const uploadData = new FormData();
-        uploadData.append("file", imageFile);
-        const uploadResult = await uploadAdminCertificateTemplateImage(uploadData);
+        if (imageFile instanceof File && imageFile.size > 0) {
+          const uploadData = new FormData();
+          uploadData.append("file", imageFile);
+          const uploadResult = await uploadAdminCertificateTemplateImage(uploadData);
 
-        if (!uploadResult.ok || !uploadResult.url) {
-          setTemplateResult(uploadResult);
-          return;
+          if (!uploadResult.ok || !uploadResult.url) {
+            setTemplateResult(uploadResult);
+            return;
+          }
+
+          backgroundImageUrl = uploadResult.url;
+          setTemplateImageMessage(uploadResult.message);
         }
 
-        backgroundImageUrl = uploadResult.url;
-        setTemplateImageMessage(uploadResult.message);
-      }
+        const nextResult = await saveAdminCertificateTemplate({
+          ...templateValue,
+          backgroundImageUrl
+        });
+        setTemplateResult(nextResult);
 
-      const nextResult = await saveAdminCertificateTemplate({
-        ...templateValue,
-        backgroundImageUrl
-      });
-      setTemplateResult(nextResult);
-
-      if (nextResult.ok) {
-        setTemplateValue((current) => ({ ...current, backgroundImageUrl }));
-        router.refresh();
+        if (nextResult.ok) {
+          setTemplateValue((current) => ({ ...current, backgroundImageUrl }));
+          router.refresh();
+        }
+      } finally {
+        setIsTemplateSaving(false);
       }
     });
   }
 
   return (
     <section className="admin-certifications-manager">
-      <form className="admin-certificate-template-panel" noValidate onSubmit={handleTemplateSubmit}>
+      <form
+        aria-busy={isTemplateSaving}
+        className="admin-certificate-template-panel"
+        noValidate
+        onSubmit={handleTemplateSubmit}
+      >
+        {isTemplateSaving ? (
+          <div className="admin-certificate-template-saving-layer" role="status" aria-live="polite">
+            <span className="admin-certificate-template-saving-spinner" aria-hidden="true" />
+            <strong>저장 중입니다</strong>
+            <span>자격증 템플릿을 적용하고 있습니다.</span>
+          </div>
+        ) : null}
         <div className="admin-certificate-template-heading">
           <div>
             <span>자격증 디자인</span>
             <h3>다운로드용 자격증 템플릿</h3>
             <p>개인별 텍스트는 입력하지 않은 배경 이미지를 업로드하고, 아래 좌표로 DB의 자격 정보를 합성합니다.</p>
           </div>
-          <button className="admin-certifications-new-button" disabled={isTemplatePending} type="submit">
+          <button className="admin-certifications-new-button" disabled={isTemplateSaving || isTemplatePending} type="submit">
             <Save size={15} />
-            적용 저장
+            {isTemplateSaving ? "저장 중" : "적용 저장"}
           </button>
         </div>
 
