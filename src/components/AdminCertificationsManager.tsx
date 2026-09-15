@@ -55,12 +55,6 @@ const templateLayoutFieldLabels: Record<CertificateTemplateLayoutFieldKey, strin
 
 const templateLayoutFieldKeys = Object.keys(templateLayoutFieldLabels) as CertificateTemplateLayoutFieldKey[];
 
-const templateAlignOptions = [
-  { label: "왼쪽", value: "end" },
-  { label: "가운데", value: "middle" },
-  { label: "오른쪽", value: "start" }
-] as const;
-
 const emptyTemplate: CertificateTemplateFormValue = {
   backgroundImageUrl: "",
   layout: defaultCertificateTemplateLayout,
@@ -200,7 +194,7 @@ export function AdminCertificationsManager({
         ...current.layout,
         [key]: {
           ...current.layout[key],
-          [name]: name === "color" || name === "align" ? value : Number(value)
+          [name]: name === "color" ? value : Number(value)
         }
       }
     }));
@@ -423,22 +417,6 @@ export function AdminCertificationsManager({
                     <label>
                       색상
                       <input onChange={(event) => updateTemplateLayoutField(key, "color", event.target.value)} type="color" value={field.color} />
-                    </label>
-                    <label>
-                      정렬
-                      <span className="admin-certificate-template-align-options">
-                        {templateAlignOptions.map((option) => (
-                          <button
-                            aria-pressed={field.align === option.value}
-                            className={field.align === option.value ? "is-active" : undefined}
-                            key={option.value}
-                            onClick={() => updateTemplateLayoutField(key, "align", option.value)}
-                            type="button"
-                          >
-                            {option.label}
-                          </button>
-                        ))}
-                      </span>
                     </label>
                   </fieldset>
                 );

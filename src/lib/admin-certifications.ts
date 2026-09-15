@@ -13,7 +13,6 @@ export type CertificateTemplateLayoutFieldKey =
   | "holderName";
 
 export type CertificateTemplateLayoutField = {
-  align: "middle" | "start" | "end";
   color: string;
   fontSize: number;
   fontWeight: number;
@@ -53,12 +52,12 @@ export type AdminCertificationPayload = {
 };
 
 export const defaultCertificateTemplateLayout: CertificateTemplateLayout = {
-  certificateNumber: { align: "start", color: "#1f1a28", fontSize: 23, fontWeight: 760, x: 325, y: 690 },
-  courseTitle: { align: "start", color: "#1f1a28", fontSize: 27, fontWeight: 790, x: 325, y: 604 },
-  holderName: { align: "start", color: "#1f1a28", fontSize: 26, fontWeight: 760, x: 325, y: 524 },
-  issuedAt: { align: "start", color: "#1f1a28", fontSize: 23, fontWeight: 760, x: 325, y: 760 },
-  status: { align: "start", color: "#0d6b35", fontSize: 23, fontWeight: 820, x: 325, y: 824 },
-  verificationCode: { align: "middle", color: "#756b7f", fontSize: 13, fontWeight: 800, x: 690, y: 136 }
+  certificateNumber: { color: "#1f1a28", fontSize: 23, fontWeight: 760, x: 325, y: 690 },
+  courseTitle: { color: "#1f1a28", fontSize: 27, fontWeight: 790, x: 325, y: 604 },
+  holderName: { color: "#1f1a28", fontSize: 26, fontWeight: 760, x: 325, y: 524 },
+  issuedAt: { color: "#1f1a28", fontSize: 23, fontWeight: 760, x: 325, y: 760 },
+  status: { color: "#0d6b35", fontSize: 23, fontWeight: 820, x: 325, y: 824 },
+  verificationCode: { color: "#756b7f", fontSize: 13, fontWeight: 800, x: 690, y: 136 }
 };
 
 const templateLayoutKeys = Object.keys(defaultCertificateTemplateLayout) as CertificateTemplateLayoutFieldKey[];
@@ -81,10 +80,6 @@ function cleanColor(value: unknown, fallback: string) {
   return typeof value === "string" && /^#[0-9a-fA-F]{6}$/.test(value.trim()) ? value.trim() : fallback;
 }
 
-function cleanAlign(value: unknown, fallback: CertificateTemplateLayoutField["align"]) {
-  return value === "middle" || value === "start" || value === "end" ? value : fallback;
-}
-
 export function normalizeCertificateTemplate(value: unknown): CertificateTemplate {
   const source = value && typeof value === "object" ? value as Partial<CertificateTemplate> : {};
   const layoutSource = source.layout && typeof source.layout === "object" ? source.layout as Partial<CertificateTemplateLayout> : {};
@@ -93,7 +88,6 @@ export function normalizeCertificateTemplate(value: unknown): CertificateTemplat
     const current = layoutSource[key] && typeof layoutSource[key] === "object" ? layoutSource[key] as Partial<CertificateTemplateLayoutField> : {};
 
     return [key, {
-      align: cleanAlign(current.align, fallback.align),
       color: cleanColor(current.color, fallback.color),
       fontSize: cleanNumber(current.fontSize, fallback.fontSize, 8, 96),
       fontWeight: cleanNumber(current.fontWeight, fallback.fontWeight, 300, 900),

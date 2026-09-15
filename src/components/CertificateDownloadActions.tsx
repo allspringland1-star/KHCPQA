@@ -115,7 +115,6 @@ function renderTextLines(lines: string[], options: {
   fontStyle?: string;
   fontWeight?: number;
   lineHeight: number;
-  textAnchor?: "end" | "middle" | "start";
   x: number;
   y: number;
 }) {
@@ -126,8 +125,7 @@ function renderTextLines(lines: string[], options: {
     `font-size="${options.fontSize}"`,
     `font-weight="${options.fontWeight ?? 700}"`,
     `fill="${options.color ?? "#1f1a28"}"`,
-    options.fontStyle ? `font-style="${options.fontStyle}"` : "",
-    options.textAnchor ? `text-anchor="${options.textAnchor}"` : ""
+    options.fontStyle ? `font-style="${options.fontStyle}"` : ""
   ]
     .filter(Boolean)
     .join(" ");
@@ -147,7 +145,6 @@ function renderManagedText(value: string, field: CertificateTemplate["layout"]["
     fontSize: field.fontSize,
     fontWeight: field.fontWeight,
     lineHeight: Math.round(field.fontSize * 1.2),
-    textAnchor: field.align,
     x: field.x,
     y: field.y
   });
@@ -357,7 +354,7 @@ function drawTemplateText(context: CanvasRenderingContext2D, value: string, fiel
   const lines = splitText(value, maxLength, maxLines);
   context.fillStyle = field.color;
   context.font = `${field.fontWeight} ${field.fontSize}px "Malgun Gothic", "Apple SD Gothic Neo", Arial, sans-serif`;
-  context.textAlign = field.align === "middle" ? "center" : field.align === "end" ? "right" : "left";
+  context.textAlign = "left";
   context.textBaseline = "alphabetic";
 
   lines.forEach((line, index) => {

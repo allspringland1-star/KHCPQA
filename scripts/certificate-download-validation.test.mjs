@@ -23,6 +23,8 @@ test("account certification download component builds a single PNG image downloa
   assert.match(source, /drawCertificateTemplateBackground/);
   assert.match(source, /한국건강관리사자격협회/);
   assert.doesNotMatch(source, /<text x="492" y="1150"/);
+  assert.doesNotMatch(source, /textAnchor/);
+  assert.match(source, /context\.textAlign = "left"/);
   assert.match(source, /이미지 다운로드/);
   assert.doesNotMatch(source, /export async function downloadCertificateSvg/);
   assert.doesNotMatch(source, /<span>SVG<\/span>/);

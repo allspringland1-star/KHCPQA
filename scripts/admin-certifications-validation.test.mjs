@@ -38,7 +38,6 @@ test("normalizeCertificateTemplate preserves uploaded background and layout cont
   assert.equal(result.backgroundImageUrl, "https://example.com/certificate.png");
   assert.equal(result.status, "published");
   assert.deepEqual(result.layout.holderName, {
-    align: "middle",
     color: "#123abc",
     fontSize: 34,
     fontWeight: 760,
@@ -188,26 +187,20 @@ test("certificate template editor focuses one field while keeping every field se
   assert.match(styleSource, /\.admin-certificate-template-field-tabs button\.is-active/);
 });
 
-test("certificate template editor owns validation and alignment controls", async () => {
+test("certificate template editor owns validation and coordinate controls", async () => {
   const managerSource = await readFile("src/components/AdminCertificationsManager.tsx", "utf8");
   const styleSource = await readFile("src/styles/globals.css", "utf8");
 
   assert.match(managerSource, /className="admin-certificate-template-panel"/);
   assert.match(managerSource, /noValidate/);
   assert.match(managerSource, /onSubmit=\{handleTemplateSubmit\}/);
-  assert.match(managerSource, /admin-certificate-template-align-options/);
-  assert.match(managerSource, /aria-pressed=\{field\.align === option\.value\}/);
-  assert.doesNotMatch(managerSource, /<select onChange=\{\(event\) => updateTemplateLayoutField\(key, "align"/);
-  assert.match(styleSource, /\.admin-certificate-template-align-options/);
-  assert.match(styleSource, /\.admin-certificate-template-align-options button\.is-active/);
-});
-
-test("certificate template alignment buttons match the visual movement direction", async () => {
-  const managerSource = await readFile("src/components/AdminCertificationsManager.tsx", "utf8");
-
-  assert.match(managerSource, /\{ label: "왼쪽", value: "end" \}/);
-  assert.match(managerSource, /\{ label: "가운데", value: "middle" \}/);
-  assert.match(managerSource, /\{ label: "오른쪽", value: "start" \}/);
+  assert.match(managerSource, /updateTemplateLayoutField\(key, "x"/);
+  assert.match(managerSource, /updateTemplateLayoutField\(key, "y"/);
+  assert.doesNotMatch(managerSource, /templateAlignOptions/);
+  assert.doesNotMatch(managerSource, /admin-certificate-template-align-options/);
+  assert.doesNotMatch(managerSource, /field\.align/);
+  assert.doesNotMatch(managerSource, /updateTemplateLayoutField\(key, "align"/);
+  assert.doesNotMatch(styleSource, /\.admin-certificate-template-align-options/);
 });
 
 test("certificate template save reports a migration hint when the database table is missing", async () => {
