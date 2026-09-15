@@ -16,7 +16,9 @@ test("account certification download component builds a single PNG image downloa
   assert.match(source, /검증코드/);
   assert.match(source, /자격증/);
   assert.match(source, /Certificate of qualification/);
-  assert.match(source, /발급됨/);
+  assert.doesNotMatch(source, /발급됨/);
+  assert.doesNotMatch(source, />상태</);
+  assert.doesNotMatch(source, /data\.status/);
   assert.match(source, /splitText/);
   assert.match(source, /renderTextLines/);
   assert.match(source, /certificateTemplate/);

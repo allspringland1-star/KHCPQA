@@ -8,7 +8,6 @@ export type CertificateTemplateLayoutFieldKey =
   | "certificateNumber"
   | "courseTitle"
   | "issuedAt"
-  | "status"
   | "verificationCode"
   | "holderName";
 
@@ -56,7 +55,6 @@ export const defaultCertificateTemplateLayout: CertificateTemplateLayout = {
   courseTitle: { color: "#1f1a28", fontSize: 27, fontWeight: 790, x: 325, y: 604 },
   holderName: { color: "#1f1a28", fontSize: 26, fontWeight: 760, x: 325, y: 524 },
   issuedAt: { color: "#1f1a28", fontSize: 23, fontWeight: 760, x: 325, y: 760 },
-  status: { color: "#0d6b35", fontSize: 23, fontWeight: 820, x: 325, y: 824 },
   verificationCode: { color: "#756b7f", fontSize: 13, fontWeight: 800, x: 690, y: 136 }
 };
 

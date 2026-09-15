@@ -49,7 +49,6 @@ const templateLayoutFieldLabels: Record<CertificateTemplateLayoutFieldKey, strin
   courseTitle: "자격명",
   holderName: "성명",
   issuedAt: "발급일",
-  status: "상태",
   verificationCode: "검증코드"
 };
 
