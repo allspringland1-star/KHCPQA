@@ -162,6 +162,28 @@ async function loadCertificateLogoDataUrl() {
   return certificateLogoDataUrl;
 }
 
+async function readBlobAsDataUrl(blob: Blob) {
+  return await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error("Image could not be encoded."));
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function loadExternalImageDataUrl(src: string) {
+  if (src.startsWith("data:")) {
+    return src;
+  }
+
+  const response = await fetch(src, { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error("Certificate background could not be loaded.");
+  }
+
+  return readBlobAsDataUrl(await response.blob());
+}
+
 function toExportData(certificate: AccountCertificate, holderName = "KAHC Member"): CertificateExportData {
   return {
     courseTitle: certificate.title,
@@ -455,8 +477,11 @@ async function buildCertificatePreviewDataUrl(
 ) {
   const logoDataUrl = await getSafeCertificateLogoDataUrl();
   const useTemplateLayout = options.useTemplateLayout ?? false;
-  const svg = certificateTemplate && (useTemplateLayout || certificateTemplate.backgroundImageUrl)
-    ? buildTemplatePreviewCertificateSvg(certificate, holderName, certificateTemplate, logoDataUrl)
+  const embeddedTemplate = certificateTemplate?.backgroundImageUrl
+    ? { ...certificateTemplate, backgroundImageUrl: await loadExternalImageDataUrl(certificateTemplate.backgroundImageUrl) }
+    : certificateTemplate;
+  const svg = embeddedTemplate && (useTemplateLayout || embeddedTemplate.backgroundImageUrl)
+    ? buildTemplatePreviewCertificateSvg(certificate, holderName, embeddedTemplate, logoDataUrl)
     : buildCertificateSvg(certificate, holderName, logoDataUrl);
 
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;

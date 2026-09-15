@@ -45,6 +45,10 @@ test("certificate download accepts managed template settings with fallback", asy
   assert.match(source, /backgroundImageUrl/);
   assert.match(source, /layout\.holderName/);
   assert.match(source, /buildManagedCertificateSvg/);
+  assert.match(source, /loadExternalImageDataUrl/);
+  assert.match(source, /fetch\(src, \{ cache: "no-store" \}\)/);
+  assert.match(source, /readBlobAsDataUrl/);
+  assert.match(source, /embeddedTemplate/);
   assert.match(source, /preserveAspectRatio="xMidYMid meet"/);
   assert.match(source, /Math\.min\(certificateSize\.width \/ background\.naturalWidth, certificateSize\.height \/ background\.naturalHeight\)/);
   assert.match(source, /context\.drawImage\(background, x, y, width, height\)/);
@@ -59,7 +63,7 @@ test("admin certificate preview applies template coordinates even without an upl
 
   assert.match(source, /export function buildTemplatePreviewCertificateSvg/);
   assert.match(source, /buildCertificatePreviewDataUrl\([^)]*useTemplateLayout/s);
-  assert.match(source, /useTemplateLayout \|\| certificateTemplate\.backgroundImageUrl/);
+  assert.match(source, /useTemplateLayout \|\| embeddedTemplate\.backgroundImageUrl/);
   assert.match(source, /key=\{previewSignature\}/);
   assert.match(source, /useTemplateLayout/);
   assert.doesNotMatch(source, /certificateTemplate\?\.backgroundImageUrl\s*\?\s*buildManagedCertificateSvg\(certificate, holderName, certificateTemplate\)\s*:\s*buildCertificateSvg\(certificate, holderName, logoDataUrl\)/s);
