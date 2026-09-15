@@ -11583,6 +11583,28 @@ p {
   padding: 16px;
 }
 
+.admin-certificate-template-preview-frame {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #ded5f5;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  max-width: 210px;
+  overflow: hidden;
+  padding: 8px;
+  width: 100%;
+}
+
+.certificate-inline-preview-image {
+  aspect-ratio: 900 / 1272;
+  display: block;
+  height: auto;
+  max-height: 250px;
+  object-fit: contain;
+  width: 100%;
+}
+
 .admin-certificate-template-preview > span {
   color: var(--console-muted);
   font-size: 12px;

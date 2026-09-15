@@ -5,6 +5,7 @@ import type { FormEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, Lock } from "lucide-react";
+import { getDefaultLoginPath, getSafeLoginNextPath, resolvePostLoginPath } from "@/lib/auth-redirect";
 import { getCopy, type Locale } from "@/lib/content";
 import { buildAuthCallbackUrl } from "@/lib/site-url";
 import { hasSupabaseBrowserEnv } from "@/lib/supabase/env";
@@ -21,55 +22,30 @@ function isEmailRateLimitError(message: string) {
 
 function getSafeNextPath(locale: Locale) {
   if (typeof window === "undefined") {
-    return `/${locale}/account`;
+    return getDefaultLoginPath(locale);
   }
 
-  const next = new URLSearchParams(window.location.search).get("next");
-
-  if (!next) {
-    return `/${locale}/account`;
-  }
-
-  const isInternal = next.startsWith("/") && !next.startsWith("//") && !next.includes("://");
-  const isAllowedPath = new RegExp(`^/(?:${locale}/account(?:/|$)|admin(?:/|$))`).test(next);
-
-  return isInternal && isAllowedPath ? next : `/${locale}/account`;
+  return getSafeLoginNextPath(locale, new URLSearchParams(window.location.search).get("next"));
 }
 
-const adminRoles = [
-  "viewer",
-  "content_manager",
-  "course_manager",
-  "certification_manager",
-  "inquiry_manager",
-  "super_admin"
-] as const;
-
-async function getPostLoginPath(locale: Locale, supabase: ReturnType<typeof createClient>) {
+async function getPostLoginPath(locale: Locale, supabase: ReturnType<typeof createClient>, userId?: string) {
   const safeNextPath = getSafeNextPath(locale);
 
   if (safeNextPath.startsWith("/admin")) {
     return safeNextPath;
   }
 
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
-
-  if (!user) {
+  if (!userId) {
     return safeNextPath;
   }
 
   const { data: profile } = await supabase
     .from("profiles")
     .select("role, status")
-    .eq("id", user.id)
+    .eq("id", userId)
     .maybeSingle();
 
-  const role = typeof profile?.role === "string" ? profile.role : "";
-  const status = typeof profile?.status === "string" ? profile.status : "";
-
-  return status === "active" && adminRoles.includes(role as (typeof adminRoles)[number]) ? "/admin" : safeNextPath;
+  return resolvePostLoginPath(locale, safeNextPath, profile);
 }
 
 export function LoginForm({ locale }: { locale: Locale }) {
@@ -186,7 +162,7 @@ export function LoginForm({ locale }: { locale: Locale }) {
 
     setIsSubmitting(true);
     const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
       setIsSubmitting(false);
@@ -196,7 +172,7 @@ export function LoginForm({ locale }: { locale: Locale }) {
     }
 
     setIsSubmitted(true);
-    const postLoginPath = await getPostLoginPath(locale, supabase);
+    const postLoginPath = await getPostLoginPath(locale, supabase, data.user?.id);
     window.setTimeout(() => {
       router.replace(postLoginPath);
     }, 650);

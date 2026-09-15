@@ -11,7 +11,7 @@ import {
   type SaveAdminCertificationResult
 } from "@/app/admin/actions";
 import { AdminStatusBadge, getTone } from "@/components/AdminConsole";
-import { CertificateImageViewer } from "@/components/CertificateDownloadActions";
+import { CertificateImageViewer, CertificateInlinePreview } from "@/components/CertificateDownloadActions";
 import {
   adminCertificationStatuses,
   defaultCertificateTemplateLayout,
@@ -60,6 +60,14 @@ const emptyTemplate: CertificateTemplateFormValue = {
   layout: defaultCertificateTemplateLayout,
   name: "기본 자격증 디자인",
   status: "published"
+};
+
+const certificateTemplatePreviewSample = {
+  issuedAt: "2026. 09. 14.",
+  number: "KHCPQA-2026-001",
+  status: "issued",
+  title: "피부미용사 국가자격증",
+  verificationCode: "VERIFY-001"
 };
 
 const emptyForm: CertificationFormValue = {
@@ -289,14 +297,15 @@ export function AdminCertificationsManager({
 
         <div className="admin-certificate-template-grid">
           <div className="admin-certificate-template-preview">
+            <div className="admin-certificate-template-preview-frame">
+              <CertificateInlinePreview
+                certificate={certificateTemplatePreviewSample}
+                certificateTemplate={templateValue}
+                holderName="홍길동"
+              />
+            </div>
             <CertificateImageViewer
-              certificate={{
-                issuedAt: "2026. 09. 14.",
-                number: "KHCPQA-2026-001",
-                status: "issued",
-                title: "피부미용사 국가자격증",
-                verificationCode: "VERIFY-001"
-              }}
+              certificate={certificateTemplatePreviewSample}
               certificateTemplate={templateValue}
               holderName="홍길동"
             />

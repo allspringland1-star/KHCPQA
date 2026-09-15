@@ -352,6 +352,19 @@ function filenameFor(certificate: AccountCertificate, extension: "png" | "svg") 
   return `${baseName}.${extension}`;
 }
 
+async function buildCertificatePreviewDataUrl(
+  certificate: AccountCertificate,
+  holderName?: string,
+  certificateTemplate?: CertificateTemplate | null
+) {
+  const logoDataUrl = await getSafeCertificateLogoDataUrl();
+  const svg = certificateTemplate?.backgroundImageUrl
+    ? buildManagedCertificateSvg(certificate, holderName, certificateTemplate)
+    : buildCertificateSvg(certificate, holderName, logoDataUrl);
+
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}
+
 export async function downloadCertificatePng(certificate: AccountCertificate, holderName?: string, certificateTemplate?: CertificateTemplate | null) {
   if (certificateTemplate?.backgroundImageUrl) {
     try {
@@ -432,6 +445,66 @@ export function CertificateDownloadActions({
   );
 }
 
+export function CertificateInlinePreview({
+  certificate,
+  certificateTemplate,
+  holderName
+}: Omit<CertificateDownloadActionsProps, "variant">) {
+  const [previewUrl, setPreviewUrl] = useState("");
+  const [previewError, setPreviewError] = useState("");
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    async function preparePreview() {
+      setPreviewError("");
+      setPreviewUrl("");
+
+      try {
+        const dataUrl = await buildCertificatePreviewDataUrl(certificate, holderName, certificateTemplate);
+
+        if (!isCancelled) {
+          setPreviewUrl(dataUrl);
+        }
+      } catch {
+        if (!isCancelled) {
+          setPreviewError("자격증 이미지를 불러오지 못했습니다.");
+        }
+      }
+    }
+
+    void preparePreview();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [certificate, certificateTemplate, holderName]);
+
+  if (previewUrl) {
+    return (
+      <NextImage
+        alt={`${holderName} ${certificate.title} 자격증 기본 디자인 미리보기`}
+        className="certificate-inline-preview-image"
+        height={certificateSize.height}
+        src={previewUrl}
+        unoptimized
+        width={certificateSize.width}
+      />
+    );
+  }
+
+  if (previewError) {
+    return <p className="certificate-preview-error" role="status">{previewError}</p>;
+  }
+
+  return (
+    <span className="certificate-preview-loading" role="status">
+      <LoaderCircle size={18} />
+      자격증 이미지를 준비하고 있습니다.
+    </span>
+  );
+}
+
 export function CertificateImageViewer({
   certificate,
   certificateTemplate,
@@ -453,11 +526,7 @@ export function CertificateImageViewer({
       setPreviewUrl("");
 
       try {
-        const logoDataUrl = await getSafeCertificateLogoDataUrl();
-        const svg = certificateTemplate?.backgroundImageUrl
-          ? buildManagedCertificateSvg(certificate, holderName, certificateTemplate)
-          : buildCertificateSvg(certificate, holderName, logoDataUrl);
-        const dataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+        const dataUrl = await buildCertificatePreviewDataUrl(certificate, holderName, certificateTemplate);
 
         if (!isCancelled) {
           setPreviewUrl(dataUrl);

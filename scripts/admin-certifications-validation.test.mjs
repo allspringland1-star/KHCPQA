@@ -148,6 +148,19 @@ test("AdminCertificationsManager exposes certificate template upload and layout 
   assert.match(managerSource, /기본 위치로 초기화/);
 });
 
+test("certificate template panel shows the generated design preview inline", async () => {
+  const managerSource = await readFile("src/components/AdminCertificationsManager.tsx", "utf8");
+  const imageSource = await readFile("src/components/CertificateDownloadActions.tsx", "utf8");
+  const styleSource = await readFile("src/styles/globals.css", "utf8");
+
+  assert.match(managerSource, /CertificateInlinePreview/);
+  assert.match(managerSource, /admin-certificate-template-preview-frame/);
+  assert.match(imageSource, /export function CertificateInlinePreview/);
+  assert.match(imageSource, /certificate-inline-preview-image/);
+  assert.match(styleSource, /\.admin-certificate-template-preview-frame/);
+  assert.match(styleSource, /\.certificate-inline-preview-image/);
+});
+
 test("AdminCertificationsManager can open existing certifications for editing", async () => {
   const dataSource = await readFile("src/lib/admin-data.ts", "utf8");
   const managerSource = await readFile("src/components/AdminCertificationsManager.tsx", "utf8");

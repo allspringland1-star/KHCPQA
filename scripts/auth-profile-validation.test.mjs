@@ -1,6 +1,24 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { pathToFileURL } from "node:url";
 import test from "node:test";
+import ts from "typescript";
+
+async function importTsModule(path) {
+  const source = await readFile(path, "utf8");
+  const output = ts.transpileModule(source, {
+    compilerOptions: {
+      module: ts.ModuleKind.ESNext,
+      target: ts.ScriptTarget.ES2020
+    }
+  }).outputText;
+  const encoded = Buffer.from(output).toString("base64");
+  return import(`data:text/javascript;base64,${encoded}#${pathToFileURL(path).href}`);
+}
+
+const {
+  resolvePostLoginPath
+} = await importTsModule("src/lib/auth-redirect.ts");
 
 test("signup collects structured profile metadata with country select", async () => {
   const source = await readFile("src/components/SignupForm.tsx", "utf8");
@@ -43,4 +61,12 @@ test("profile migration stores signup metadata in public profiles", async () => 
   assert.match(migration, /new\.raw_user_meta_data ->> 'phone'/);
   assert.match(migration, /new\.raw_user_meta_data ->> 'interested_course'/);
   assert.match(migration, /new\.raw_user_meta_data ->> 'marketing_opt_in'/);
+});
+
+test("active admin profiles land on admin after login", () => {
+  assert.equal(resolvePostLoginPath("ko", "/ko/account", { role: "super_admin", status: "active" }), "/admin");
+  assert.equal(resolvePostLoginPath("ko", "/ko/account", { role: "certification_manager", status: "active" }), "/admin");
+  assert.equal(resolvePostLoginPath("ko", "/ko/account", { role: "user", status: "active" }), "/ko/account");
+  assert.equal(resolvePostLoginPath("ko", "/admin/certifications", { role: "user", status: "active" }), "/admin/certifications");
+  assert.equal(resolvePostLoginPath("ko", "/ko/account", { role: "super_admin", status: "suspended" }), "/ko/account");
 });
