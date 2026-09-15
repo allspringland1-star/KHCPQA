@@ -297,6 +297,7 @@ export function AdminCertificationsManager({
 
         <div className="admin-certificate-template-grid">
           <div className="admin-certificate-template-preview">
+            <span className="admin-certificate-template-preview-kicker">실시간 미리보기</span>
             <div className="admin-certificate-template-preview-frame">
               <CertificateInlinePreview
                 certificate={certificateTemplatePreviewSample}
@@ -312,79 +313,84 @@ export function AdminCertificationsManager({
             <span>{templateValue.backgroundImageUrl ? "업로드 디자인 적용 중" : "기본 디자인 미리보기"}</span>
           </div>
 
-          <div className="admin-certificate-template-controls">
-            <label>
-              디자인명
-              <input
-                onChange={(event) => updateTemplateField("name", event.target.value)}
-                value={templateValue.name}
-              />
-            </label>
-            <label>
-              배경 이미지 URL
-              <input
-                onChange={(event) => updateTemplateField("backgroundImageUrl", event.target.value)}
-                placeholder="업로드 후 자동 입력됩니다"
-                value={templateValue.backgroundImageUrl}
-              />
-            </label>
-            <label className="admin-certificate-template-upload">
-              <Upload size={15} />
-              <span>배경 이미지 업로드</span>
-              <input accept="image/jpeg,image/png,image/webp,image/gif" name="certificateTemplateImage" type="file" />
-            </label>
-            <button className="secondary-button" onClick={resetTemplateLayout} type="button">
-              <RotateCcw size={15} />
-              기본 위치로 초기화
-            </button>
-            <button className="secondary-button" onClick={restoreDefaultTemplate} type="button">
-              <RotateCcw size={15} />
-              기본 디자인으로 복원
-            </button>
-            {templateImageMessage ? <p className="form-success"><FileImage size={16} />{templateImageMessage}</p> : null}
-            {templateResult ? (
-              <p className={templateResult.ok ? "form-success" : "form-error"} role="status">
-                {templateResult.ok ? <CheckCircle2 size={16} /> : null}
-                {templateResult.message}
-              </p>
-            ) : null}
+          <div className="admin-certificate-template-workspace">
+            <div className="admin-certificate-template-controls">
+              <label>
+                디자인명
+                <input
+                  onChange={(event) => updateTemplateField("name", event.target.value)}
+                  value={templateValue.name}
+                />
+              </label>
+              <label>
+                배경 이미지 URL
+                <input
+                  onChange={(event) => updateTemplateField("backgroundImageUrl", event.target.value)}
+                  placeholder="업로드 후 자동 입력됩니다"
+                  value={templateValue.backgroundImageUrl}
+                />
+              </label>
+              <label className="admin-certificate-template-upload">
+                <Upload size={15} />
+                <span>배경 이미지 업로드</span>
+                <input accept="image/jpeg,image/png,image/webp,image/gif" name="certificateTemplateImage" type="file" />
+              </label>
+              <button className="secondary-button" onClick={resetTemplateLayout} type="button">
+                <RotateCcw size={15} />
+                기본 위치로 초기화
+              </button>
+              <button className="secondary-button" onClick={restoreDefaultTemplate} type="button">
+                <RotateCcw size={15} />
+                기본 디자인으로 복원
+              </button>
+              {templateImageMessage ? <p className="form-success"><FileImage size={16} />{templateImageMessage}</p> : null}
+              {templateResult ? (
+                <p className={templateResult.ok ? "form-success" : "form-error"} role="status">
+                  {templateResult.ok ? <CheckCircle2 size={16} /> : null}
+                  {templateResult.message}
+                </p>
+              ) : null}
+            </div>
+
+            <div className="admin-certificate-template-layout">
+              {templateLayoutFieldKeys.map((key) => {
+                const field = templateValue.layout[key];
+
+                return (
+                  <fieldset key={key}>
+                    <legend>{templateLayoutFieldLabels[key]}</legend>
+                    <label className="admin-certificate-template-field-range">
+                      <span>X</span>
+                      <input min={0} max={900} onChange={(event) => updateTemplateLayoutField(key, "x", event.target.value)} type="range" value={field.x} />
+                      <input min={0} max={900} onChange={(event) => updateTemplateLayoutField(key, "x", event.target.value)} type="number" value={field.x} />
+                    </label>
+                    <label className="admin-certificate-template-field-range">
+                      <span>Y</span>
+                      <input min={0} max={1272} onChange={(event) => updateTemplateLayoutField(key, "y", event.target.value)} type="range" value={field.y} />
+                      <input min={0} max={1272} onChange={(event) => updateTemplateLayoutField(key, "y", event.target.value)} type="number" value={field.y} />
+                    </label>
+                    <label className="admin-certificate-template-field-range">
+                      <span>크기</span>
+                      <input min={8} max={96} onChange={(event) => updateTemplateLayoutField(key, "fontSize", event.target.value)} type="range" value={field.fontSize} />
+                      <input min={8} max={96} onChange={(event) => updateTemplateLayoutField(key, "fontSize", event.target.value)} type="number" value={field.fontSize} />
+                    </label>
+                    <label>
+                      색상
+                      <input onChange={(event) => updateTemplateLayoutField(key, "color", event.target.value)} type="color" value={field.color} />
+                    </label>
+                    <label>
+                      정렬
+                      <select onChange={(event) => updateTemplateLayoutField(key, "align", event.target.value)} value={field.align}>
+                        <option value="start">왼쪽</option>
+                        <option value="middle">가운데</option>
+                        <option value="end">오른쪽</option>
+                      </select>
+                    </label>
+                  </fieldset>
+                );
+              })}
+            </div>
           </div>
-        </div>
-
-        <div className="admin-certificate-template-layout">
-          {templateLayoutFieldKeys.map((key) => {
-            const field = templateValue.layout[key];
-
-            return (
-              <fieldset key={key}>
-                <legend>{templateLayoutFieldLabels[key]}</legend>
-                <label>
-                  X
-                  <input min={0} max={900} onChange={(event) => updateTemplateLayoutField(key, "x", event.target.value)} type="number" value={field.x} />
-                </label>
-                <label>
-                  Y
-                  <input min={0} max={1272} onChange={(event) => updateTemplateLayoutField(key, "y", event.target.value)} type="number" value={field.y} />
-                </label>
-                <label>
-                  크기
-                  <input min={8} max={96} onChange={(event) => updateTemplateLayoutField(key, "fontSize", event.target.value)} type="number" value={field.fontSize} />
-                </label>
-                <label>
-                  색상
-                  <input onChange={(event) => updateTemplateLayoutField(key, "color", event.target.value)} type="color" value={field.color} />
-                </label>
-                <label>
-                  정렬
-                  <select onChange={(event) => updateTemplateLayoutField(key, "align", event.target.value)} value={field.align}>
-                    <option value="start">왼쪽</option>
-                    <option value="middle">가운데</option>
-                    <option value="end">오른쪽</option>
-                  </select>
-                </label>
-              </fieldset>
-            );
-          })}
         </div>
       </form>
 

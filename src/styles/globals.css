@@ -11568,11 +11568,12 @@ p {
 .admin-certificate-template-grid {
   display: grid;
   gap: 16px;
-  grid-template-columns: minmax(180px, 0.32fr) minmax(0, 1fr);
+  grid-template-columns: minmax(240px, 0.34fr) minmax(0, 1fr);
 }
 
 .admin-certificate-template-preview {
   align-content: center;
+  align-self: start;
   background: #f8f6fd;
   border: 1px solid #e4dcfb;
   border-radius: 8px;
@@ -11581,6 +11582,8 @@ p {
   justify-items: center;
   min-height: 132px;
   padding: 16px;
+  position: sticky;
+  top: 16px;
 }
 
 .admin-certificate-template-preview-frame {
@@ -11594,6 +11597,12 @@ p {
   overflow: hidden;
   padding: 8px;
   width: 100%;
+}
+
+.admin-certificate-template-preview-kicker {
+  color: var(--console-purple-dark);
+  font-size: 12px;
+  font-weight: 900;
 }
 
 .certificate-inline-preview-image {
@@ -11611,11 +11620,17 @@ p {
   font-weight: 800;
 }
 
+.admin-certificate-template-workspace {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
 .admin-certificate-template-controls {
   align-items: end;
   display: grid;
   gap: 12px;
-  grid-template-columns: minmax(180px, 0.8fr) minmax(260px, 1.2fr) auto auto;
+  grid-template-columns: minmax(180px, 0.8fr) minmax(260px, 1.2fr) repeat(3, auto);
 }
 
 .admin-certificate-template-controls label:not(.admin-certificate-template-upload) {
@@ -11672,7 +11687,7 @@ p {
 .admin-certificate-template-layout {
   display: grid;
   gap: 10px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 520px), 1fr));
 }
 
 .admin-certificate-template-layout fieldset {
@@ -11680,7 +11695,7 @@ p {
   border-radius: 8px;
   display: grid;
   gap: 8px;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(112px, 1fr)) 86px 116px;
   margin: 0;
   padding: 12px;
 }
@@ -11703,6 +11718,25 @@ p {
 .admin-certificate-template-layout input[type="color"] {
   min-width: 44px;
   padding: 4px;
+}
+
+.admin-certificate-template-field-range {
+  grid-template-columns: minmax(0, 1fr) 76px;
+}
+
+.admin-certificate-template-field-range > span {
+  grid-column: 1 / -1;
+}
+
+.admin-certificate-template-field-range input[type="range"] {
+  accent-color: var(--console-purple);
+  min-height: 24px;
+  padding: 0;
+  width: 100%;
+}
+
+.admin-certificate-template-field-range input[type="number"] {
+  min-width: 0;
 }
 
 .admin-certifications-toolbar {

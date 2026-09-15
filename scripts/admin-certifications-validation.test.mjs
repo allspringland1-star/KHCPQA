@@ -161,6 +161,20 @@ test("certificate template panel shows the generated design preview inline", asy
   assert.match(styleSource, /\.certificate-inline-preview-image/);
 });
 
+test("certificate template layout controls update the preview workspace before saving", async () => {
+  const managerSource = await readFile("src/components/AdminCertificationsManager.tsx", "utf8");
+  const styleSource = await readFile("src/styles/globals.css", "utf8");
+
+  assert.match(managerSource, /admin-certificate-template-workspace/);
+  assert.match(managerSource, /실시간 미리보기/);
+  assert.match(managerSource, /type="range"/);
+  assert.match(managerSource, /updateTemplateLayoutField\(key, "x"/);
+  assert.match(managerSource, /updateTemplateLayoutField\(key, "y"/);
+  assert.match(managerSource, /saveAdminCertificateTemplate\(\{\s+\.\.\.templateValue/s);
+  assert.match(styleSource, /\.admin-certificate-template-preview\s*\{[^}]*position: sticky/s);
+  assert.match(styleSource, /\.admin-certificate-template-field-range/);
+});
+
 test("AdminCertificationsManager can open existing certifications for editing", async () => {
   const dataSource = await readFile("src/lib/admin-data.ts", "utf8");
   const managerSource = await readFile("src/components/AdminCertificationsManager.tsx", "utf8");
