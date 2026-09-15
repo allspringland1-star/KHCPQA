@@ -95,6 +95,16 @@ test("certificate download buttons have dedicated layout styles", async () => {
   assert.match(styleSource, /grid-template-columns: minmax\(0, 1fr\) minmax\(170px, 0\.85fr\) auto auto/);
 });
 
+test("certificate preview modal is portaled above admin stacking contexts", async () => {
+  const source = await readFile("src/components/CertificateDownloadActions.tsx", "utf8");
+  const styleSource = await readFile("src/styles/globals.css", "utf8");
+
+  assert.match(source, /import \{ createPortal \} from "react-dom"/);
+  assert.match(source, /createPortal\(previewDialog, document\.body\)/);
+  assert.match(styleSource, /\.certificate-preview-backdrop[\s\S]*position: fixed/);
+  assert.match(styleSource, /\.certificate-preview-backdrop[\s\S]*z-index: 1500/);
+});
+
 test("account certificate statuses are localized for member-facing pages", async () => {
   const accountDataSource = await readFile("src/lib/account-data.ts", "utf8");
 

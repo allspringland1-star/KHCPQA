@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Eye, FileImage, LoaderCircle, X } from "lucide-react";
 import NextImage from "next/image";
 import type { AccountCertificate } from "@/lib/account-data";
@@ -632,6 +633,61 @@ export function CertificateImageViewer({
     };
   }, [certificate, certificateTemplate, holderName, isOpen, previewSignature, useTemplateLayout]);
 
+  const previewDialog = isOpen ? (
+    <div
+      className="certificate-preview-backdrop"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) {
+          setIsOpen(false);
+        }
+      }}
+    >
+      <section
+        aria-labelledby={`certificate-preview-${certificate.number}`}
+        aria-modal="true"
+        className="certificate-preview-dialog"
+        role="dialog"
+      >
+        <header className="certificate-preview-heading">
+          <div>
+            <span>자격증 이미지</span>
+            <h2 id={`certificate-preview-${certificate.number}`}>자격증 미리보기</h2>
+            <p>{holderName} · {certificate.title}</p>
+          </div>
+          <button aria-label="자격증 미리보기 닫기" onClick={() => setIsOpen(false)} type="button">
+            <X size={18} />
+          </button>
+        </header>
+
+        <div className="certificate-preview-canvas">
+          {previewUrl ? (
+            <NextImage
+              alt={`${holderName} ${certificate.title} 자격증 미리보기`}
+              className="certificate-preview-image"
+              height={certificateSize.height}
+              key={previewSignature}
+              src={previewUrl}
+              unoptimized
+              width={certificateSize.width}
+            />
+          ) : previewError ? (
+            <p className="certificate-preview-error" role="status">{previewError}</p>
+          ) : (
+            <span className="certificate-preview-loading" role="status">
+              <LoaderCircle size={22} />
+              자격증 이미지를 준비하고 있습니다.
+            </span>
+          )}
+        </div>
+
+        <footer className="certificate-preview-actions">
+          <CertificateDownloadActions certificate={certificate} certificateTemplate={certificateTemplate} holderName={holderName} />
+          <button className="secondary-button" onClick={() => setIsOpen(false)} type="button">닫기</button>
+        </footer>
+      </section>
+    </div>
+  ) : null;
+
   return (
     <>
       <button
@@ -644,60 +700,7 @@ export function CertificateImageViewer({
         보기
       </button>
 
-      {isOpen ? (
-        <div
-          className="certificate-preview-backdrop"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) {
-              setIsOpen(false);
-            }
-          }}
-        >
-          <section
-            aria-labelledby={`certificate-preview-${certificate.number}`}
-            aria-modal="true"
-            className="certificate-preview-dialog"
-            role="dialog"
-          >
-            <header className="certificate-preview-heading">
-              <div>
-                <span>자격증 이미지</span>
-                <h2 id={`certificate-preview-${certificate.number}`}>자격증 미리보기</h2>
-                <p>{holderName} · {certificate.title}</p>
-              </div>
-              <button aria-label="자격증 미리보기 닫기" onClick={() => setIsOpen(false)} type="button">
-                <X size={18} />
-              </button>
-            </header>
-
-            <div className="certificate-preview-canvas">
-              {previewUrl ? (
-                <NextImage
-                  alt={`${holderName} ${certificate.title} 자격증 미리보기`}
-                  className="certificate-preview-image"
-                  height={certificateSize.height}
-                  key={previewSignature}
-                  src={previewUrl}
-                  unoptimized
-                  width={certificateSize.width}
-                />
-              ) : previewError ? (
-                <p className="certificate-preview-error" role="status">{previewError}</p>
-              ) : (
-                <span className="certificate-preview-loading" role="status">
-                  <LoaderCircle size={22} />
-                  자격증 이미지를 준비하고 있습니다.
-                </span>
-              )}
-            </div>
-
-            <footer className="certificate-preview-actions">
-              <CertificateDownloadActions certificate={certificate} certificateTemplate={certificateTemplate} holderName={holderName} />
-              <button className="secondary-button" onClick={() => setIsOpen(false)} type="button">닫기</button>
-            </footer>
-          </section>
-        </div>
-      ) : null}
+      {previewDialog && typeof document !== "undefined" ? createPortal(previewDialog, document.body) : null}
     </>
   );
 }
