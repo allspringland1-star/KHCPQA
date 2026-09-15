@@ -5,12 +5,14 @@ import { createPortal } from "react-dom";
 import { Eye, FileImage, LoaderCircle, X } from "lucide-react";
 import NextImage from "next/image";
 import type { AccountCertificate } from "@/lib/account-data";
-import type { CertificateTemplate } from "@/lib/admin-certifications";
+import type { CertificateTemplate, CertificateTemplateLayoutFieldKey } from "@/lib/admin-certifications";
 
 type CertificateDownloadActionsProps = {
   certificate: AccountCertificate;
   certificateTemplate?: CertificateTemplate | null;
   holderName?: string;
+  selectedField?: CertificateTemplateLayoutFieldKey;
+  selectedFieldLabel?: string;
   useTemplateLayout?: boolean;
   variant?: "compact" | "full";
 };
@@ -504,6 +506,8 @@ export function CertificateInlinePreview({
   certificate,
   certificateTemplate,
   holderName,
+  selectedField,
+  selectedFieldLabel,
   useTemplateLayout = false
 }: Omit<CertificateDownloadActionsProps, "variant">) {
   const [previewUrl, setPreviewUrl] = useState("");
@@ -538,16 +542,32 @@ export function CertificateInlinePreview({
   }, [certificate, certificateTemplate, holderName, previewSignature, useTemplateLayout]);
 
   if (previewUrl) {
+    const selectedLayout = selectedField && certificateTemplate ? certificateTemplate.layout[selectedField] : null;
+
     return (
-      <NextImage
-        alt={`${holderName} ${certificate.title} 자격증 기본 디자인 미리보기`}
-        className="certificate-inline-preview-image"
-        height={certificateSize.height}
-        key={previewSignature}
-        src={previewUrl}
-        unoptimized
-        width={certificateSize.width}
-      />
+      <span className="certificate-inline-preview-stage">
+        <NextImage
+          alt={`${holderName} ${certificate.title} 자격증 기본 디자인 미리보기`}
+          className="certificate-inline-preview-image"
+          height={certificateSize.height}
+          key={previewSignature}
+          src={previewUrl}
+          unoptimized
+          width={certificateSize.width}
+        />
+        {selectedLayout ? (
+          <span
+            aria-hidden="true"
+            className="certificate-inline-preview-guide"
+            style={{
+              left: `${(selectedLayout.x / certificateSize.width) * 100}%`,
+              top: `${(selectedLayout.y / certificateSize.height) * 100}%`
+            }}
+          >
+            {selectedFieldLabel}
+          </span>
+        ) : null}
+      </span>
     );
   }
 

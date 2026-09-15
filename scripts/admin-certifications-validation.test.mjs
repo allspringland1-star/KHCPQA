@@ -156,8 +156,11 @@ test("certificate template panel shows the generated design preview inline", asy
   assert.match(managerSource, /admin-certificate-template-preview-frame/);
   assert.match(imageSource, /export function CertificateInlinePreview/);
   assert.match(imageSource, /certificate-inline-preview-image/);
+  assert.match(imageSource, /selectedField/);
+  assert.match(imageSource, /certificate-inline-preview-guide/);
   assert.match(styleSource, /\.admin-certificate-template-preview-frame/);
   assert.match(styleSource, /\.certificate-inline-preview-image/);
+  assert.match(styleSource, /\.certificate-inline-preview-guide/);
 });
 
 test("certificate template layout controls update the preview workspace before saving", async () => {
@@ -167,12 +170,21 @@ test("certificate template layout controls update the preview workspace before s
   assert.match(managerSource, /admin-certificate-template-workspace/);
   assert.match(managerSource, /실시간 미리보기/);
   assert.match(managerSource, /type="range"/);
+  assert.match(managerSource, /admin-certificate-template-stepper/);
+  assert.match(managerSource, /nudgeTemplateLayoutField\(key, "x"/);
+  assert.match(managerSource, /nudgeTemplateLayoutField\(key, "y"/);
+  assert.match(managerSource, /selectedField=\{selectedTemplateField\}/);
+  assert.match(managerSource, /selectedFieldLabel=\{templateLayoutFieldLabels\[selectedTemplateField\]\}/);
   assert.match(managerSource, /useTemplateLayout/);
   assert.match(managerSource, /updateTemplateLayoutField\(key, "x"/);
   assert.match(managerSource, /updateTemplateLayoutField\(key, "y"/);
-  assert.match(managerSource, /saveAdminCertificateTemplate\(\{\s+\.\.\.templateValue/s);
+  assert.match(managerSource, /const nextTemplate = \{\s+\.\.\.templateValue/s);
+  assert.match(managerSource, /saveAdminCertificateTemplate\(nextTemplate\)/);
   assert.match(styleSource, /\.admin-certificate-template-preview\s*\{[^}]*position: sticky/s);
   assert.match(styleSource, /\.admin-certificate-template-field-range/);
+  assert.match(styleSource, /grid-template-columns: minmax\(360px, 0\.48fr\) minmax\(0, 1fr\)/);
+  assert.match(styleSource, /max-height: 560px/);
+  assert.match(styleSource, /\.certificate-inline-preview-guide/);
 });
 
 test("certificate template editor focuses one field while keeping every field selectable", async () => {
@@ -194,6 +206,8 @@ test("certificate template editor owns validation and coordinate controls", asyn
   assert.match(managerSource, /className="admin-certificate-template-panel"/);
   assert.match(managerSource, /noValidate/);
   assert.match(managerSource, /onSubmit=\{handleTemplateSubmit\}/);
+  assert.match(managerSource, /hasUnsavedTemplateChanges/);
+  assert.match(managerSource, /저장되지 않은 변경/);
   assert.match(managerSource, /updateTemplateLayoutField\(key, "x"/);
   assert.match(managerSource, /updateTemplateLayoutField\(key, "y"/);
   assert.doesNotMatch(managerSource, /templateAlignOptions/);

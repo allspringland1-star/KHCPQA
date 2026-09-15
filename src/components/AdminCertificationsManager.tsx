@@ -3,7 +3,7 @@
 import type { FormEvent } from "react";
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Clipboard, ClipboardCheck, Clock3, FileImage, Pencil, Plus, RotateCcw, Save, Search, ShieldCheck, Upload, X } from "lucide-react";
+import { CheckCircle2, Clipboard, ClipboardCheck, Clock3, FileImage, Minus, Pencil, Plus, RotateCcw, Save, Search, ShieldCheck, Upload, X } from "lucide-react";
 import {
   saveAdminCertification,
   saveAdminCertificateTemplate,
@@ -61,6 +61,12 @@ const emptyTemplate: CertificateTemplateFormValue = {
   status: "published"
 };
 
+const templateLayoutLimits = {
+  fontSize: { max: 96, min: 8, step: 1 },
+  x: { max: 900, min: 0, step: 5 },
+  y: { max: 1272, min: 0, step: 5 }
+} as const;
+
 const certificateTemplatePreviewSample = {
   issuedAt: "2026. 09. 14.",
   number: "KHCPQA-2026-001",
@@ -98,6 +104,7 @@ export function AdminCertificationsManager({
   const [statusFilter, setStatusFilter] = useState("");
   const [copiedKey, setCopiedKey] = useState("");
   const [templateValue, setTemplateValue] = useState<CertificateTemplateFormValue>(certificateTemplate ?? emptyTemplate);
+  const [savedTemplateSignature, setSavedTemplateSignature] = useState(() => JSON.stringify(certificateTemplate ?? emptyTemplate));
   const [templateResult, setTemplateResult] = useState<SaveAdminCertificationResult | null>(null);
   const [templateImageMessage, setTemplateImageMessage] = useState("");
   const [selectedTemplateField, setSelectedTemplateField] = useState<CertificateTemplateLayoutFieldKey>("holderName");
@@ -139,6 +146,7 @@ export function AdminCertificationsManager({
       return matchesKeyword && matchesStatus;
     });
   }, [certifications, search, statusFilter]);
+  const hasUnsavedTemplateChanges = JSON.stringify(templateValue) !== savedTemplateSignature;
 
   function openCreateModal() {
     setMode("create");
@@ -197,6 +205,31 @@ export function AdminCertificationsManager({
         }
       }
     }));
+    setTemplateResult(null);
+  }
+
+  function nudgeTemplateLayoutField(
+    key: CertificateTemplateLayoutFieldKey,
+    name: "fontSize" | "x" | "y",
+    direction: -1 | 1
+  ) {
+    const limit = templateLayoutLimits[name];
+
+    setTemplateValue((current) => {
+      const currentValue = Number(current.layout[key][name]);
+      const nextValue = Math.min(limit.max, Math.max(limit.min, currentValue + limit.step * direction));
+
+      return {
+        ...current,
+        layout: {
+          ...current.layout,
+          [key]: {
+            ...current.layout[key],
+            [name]: nextValue
+          }
+        }
+      };
+    });
     setTemplateResult(null);
   }
 
@@ -275,14 +308,16 @@ export function AdminCertificationsManager({
           setTemplateImageMessage(uploadResult.message);
         }
 
-        const nextResult = await saveAdminCertificateTemplate({
+        const nextTemplate = {
           ...templateValue,
           backgroundImageUrl
-        });
+        };
+        const nextResult = await saveAdminCertificateTemplate(nextTemplate);
         setTemplateResult(nextResult);
 
         if (nextResult.ok) {
-          setTemplateValue((current) => ({ ...current, backgroundImageUrl }));
+          setTemplateValue(nextTemplate);
+          setSavedTemplateSignature(JSON.stringify(nextTemplate));
           router.refresh();
         }
       } finally {
@@ -312,10 +347,13 @@ export function AdminCertificationsManager({
             <h3>다운로드용 자격증 템플릿</h3>
             <p>개인별 텍스트는 입력하지 않은 배경 이미지를 업로드하고, 아래 좌표로 DB의 자격 정보를 합성합니다.</p>
           </div>
-          <button className="admin-certifications-new-button" disabled={isTemplateSaving || isTemplatePending} type="submit">
-            <Save size={15} />
-            {isTemplateSaving ? "저장 중" : "적용 저장"}
-          </button>
+          <div className="admin-certificate-template-heading-actions">
+            {hasUnsavedTemplateChanges ? <span className="admin-certificate-template-dirty-badge">저장되지 않은 변경</span> : null}
+            <button className="admin-certifications-new-button" disabled={isTemplateSaving || isTemplatePending} type="submit">
+              <Save size={15} />
+              {isTemplateSaving ? "저장 중" : "적용 저장"}
+            </button>
+          </div>
         </div>
 
         <div className="admin-certificate-template-grid">
@@ -326,6 +364,8 @@ export function AdminCertificationsManager({
                 certificate={certificateTemplatePreviewSample}
                 certificateTemplate={templateValue}
                 holderName="홍길동"
+                selectedField={selectedTemplateField}
+                selectedFieldLabel={templateLayoutFieldLabels[selectedTemplateField]}
                 useTemplateLayout
               />
             </div>
@@ -401,12 +441,28 @@ export function AdminCertificationsManager({
                     <label className="admin-certificate-template-field-range">
                       <span>X</span>
                       <input min={0} max={900} onChange={(event) => updateTemplateLayoutField(key, "x", event.target.value)} type="range" value={field.x} />
-                      <input min={0} max={900} onChange={(event) => updateTemplateLayoutField(key, "x", event.target.value)} type="number" value={field.x} />
+                      <span className="admin-certificate-template-stepper">
+                        <button aria-label="X 좌표 5 줄이기" onClick={() => nudgeTemplateLayoutField(key, "x", -1)} type="button">
+                          <Minus size={13} />
+                        </button>
+                        <input min={0} max={900} onChange={(event) => updateTemplateLayoutField(key, "x", event.target.value)} type="number" value={field.x} />
+                        <button aria-label="X 좌표 5 늘리기" onClick={() => nudgeTemplateLayoutField(key, "x", 1)} type="button">
+                          <Plus size={13} />
+                        </button>
+                      </span>
                     </label>
                     <label className="admin-certificate-template-field-range">
                       <span>Y</span>
                       <input min={0} max={1272} onChange={(event) => updateTemplateLayoutField(key, "y", event.target.value)} type="range" value={field.y} />
-                      <input min={0} max={1272} onChange={(event) => updateTemplateLayoutField(key, "y", event.target.value)} type="number" value={field.y} />
+                      <span className="admin-certificate-template-stepper">
+                        <button aria-label="Y 좌표 5 줄이기" onClick={() => nudgeTemplateLayoutField(key, "y", -1)} type="button">
+                          <Minus size={13} />
+                        </button>
+                        <input min={0} max={1272} onChange={(event) => updateTemplateLayoutField(key, "y", event.target.value)} type="number" value={field.y} />
+                        <button aria-label="Y 좌표 5 늘리기" onClick={() => nudgeTemplateLayoutField(key, "y", 1)} type="button">
+                          <Plus size={13} />
+                        </button>
+                      </span>
                     </label>
                     <label className="admin-certificate-template-field-range">
                       <span>크기</span>
