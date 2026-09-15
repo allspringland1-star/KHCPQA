@@ -56,9 +56,9 @@ const templateLayoutFieldLabels: Record<CertificateTemplateLayoutFieldKey, strin
 const templateLayoutFieldKeys = Object.keys(templateLayoutFieldLabels) as CertificateTemplateLayoutFieldKey[];
 
 const templateAlignOptions = [
-  { label: "왼쪽", value: "start" },
+  { label: "왼쪽", value: "end" },
   { label: "가운데", value: "middle" },
-  { label: "오른쪽", value: "end" }
+  { label: "오른쪽", value: "start" }
 ] as const;
 
 const emptyTemplate: CertificateTemplateFormValue = {

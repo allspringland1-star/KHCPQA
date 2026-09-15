@@ -202,6 +202,14 @@ test("certificate template editor owns validation and alignment controls", async
   assert.match(styleSource, /\.admin-certificate-template-align-options button\.is-active/);
 });
 
+test("certificate template alignment buttons match the visual movement direction", async () => {
+  const managerSource = await readFile("src/components/AdminCertificationsManager.tsx", "utf8");
+
+  assert.match(managerSource, /\{ label: "왼쪽", value: "end" \}/);
+  assert.match(managerSource, /\{ label: "가운데", value: "middle" \}/);
+  assert.match(managerSource, /\{ label: "오른쪽", value: "start" \}/);
+});
+
 test("certificate template save reports a migration hint when the database table is missing", async () => {
   const actionSource = await readFile("src/app/admin/actions.ts", "utf8");
 
