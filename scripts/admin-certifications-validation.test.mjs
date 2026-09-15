@@ -183,14 +183,15 @@ test("certificate template layout controls update the preview workspace before s
   assert.match(managerSource, /saveAdminCertificateTemplate\(nextTemplate\)/);
   assert.match(styleSource, /\.admin-certificate-template-preview\s*\{[^}]*position: sticky/s);
   assert.match(styleSource, /\.admin-certificate-template-field-range/);
-  assert.match(styleSource, /grid-template-columns: minmax\(360px, 0\.48fr\) minmax\(0, 1fr\)/);
-  assert.match(styleSource, /max-height: 560px/);
+  assert.match(styleSource, /\.admin-certificate-template-grid\s*\{[^}]*align-items: start/s);
+  assert.match(styleSource, /grid-template-columns: minmax\(340px, 0\.42fr\) minmax\(0, 1fr\)/);
+  assert.match(styleSource, /max-height: 520px/);
   assert.match(styleSource, /\.admin-certificate-template-workspace\s*\{[^}]*align-content: start/s);
   assert.match(styleSource, /\.admin-certificate-template-field-tabs\s*\{[^}]*align-self: start/s);
   assert.match(styleSource, /\.certificate-inline-preview-guide/);
   assert.match(styleSource, /\.certificate-inline-preview-guide::before/);
   assert.match(styleSource, /grid-template-columns: repeat\(5, minmax\(0, 1fr\)\)/);
-  assert.match(styleSource, /min-height: 30px/);
+  assert.match(styleSource, /min-height: 28px/);
 });
 
 test("certificate template editor focuses one field while keeping every field selectable", async () => {
