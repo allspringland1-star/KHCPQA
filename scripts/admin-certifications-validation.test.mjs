@@ -168,11 +168,36 @@ test("certificate template layout controls update the preview workspace before s
   assert.match(managerSource, /admin-certificate-template-workspace/);
   assert.match(managerSource, /실시간 미리보기/);
   assert.match(managerSource, /type="range"/);
+  assert.match(managerSource, /useTemplateLayout/);
   assert.match(managerSource, /updateTemplateLayoutField\(key, "x"/);
   assert.match(managerSource, /updateTemplateLayoutField\(key, "y"/);
   assert.match(managerSource, /saveAdminCertificateTemplate\(\{\s+\.\.\.templateValue/s);
   assert.match(styleSource, /\.admin-certificate-template-preview\s*\{[^}]*position: sticky/s);
   assert.match(styleSource, /\.admin-certificate-template-field-range/);
+});
+
+test("certificate template editor focuses one field while keeping every field selectable", async () => {
+  const managerSource = await readFile("src/components/AdminCertificationsManager.tsx", "utf8");
+  const styleSource = await readFile("src/styles/globals.css", "utf8");
+
+  assert.match(managerSource, /selectedTemplateField/);
+  assert.match(managerSource, /admin-certificate-template-field-tabs/);
+  assert.match(managerSource, /aria-pressed=\{selectedTemplateField === key\}/);
+  assert.match(managerSource, /templateLayoutFieldKeys\.filter\(\(key\) => key === selectedTemplateField\)/);
+  assert.match(styleSource, /\.admin-certificate-template-field-tabs/);
+  assert.match(styleSource, /\.admin-certificate-template-field-tabs button\.is-active/);
+});
+
+test("certificate template editor owns validation and alignment controls", async () => {
+  const managerSource = await readFile("src/components/AdminCertificationsManager.tsx", "utf8");
+  const styleSource = await readFile("src/styles/globals.css", "utf8");
+
+  assert.match(managerSource, /<form className="admin-certificate-template-panel" noValidate onSubmit=\{handleTemplateSubmit\}>/);
+  assert.match(managerSource, /admin-certificate-template-align-options/);
+  assert.match(managerSource, /aria-pressed=\{field\.align === option\.value\}/);
+  assert.doesNotMatch(managerSource, /<select onChange=\{\(event\) => updateTemplateLayoutField\(key, "align"/);
+  assert.match(styleSource, /\.admin-certificate-template-align-options/);
+  assert.match(styleSource, /\.admin-certificate-template-align-options button\.is-active/);
 });
 
 test("AdminCertificationsManager can open existing certifications for editing", async () => {

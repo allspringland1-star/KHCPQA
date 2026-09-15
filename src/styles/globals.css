@@ -11593,9 +11593,9 @@ p {
   border-radius: 8px;
   display: flex;
   justify-content: center;
-  max-width: 210px;
+  max-width: 300px;
   overflow: hidden;
-  padding: 8px;
+  padding: 10px;
   width: 100%;
 }
 
@@ -11609,7 +11609,7 @@ p {
   aspect-ratio: 900 / 1272;
   display: block;
   height: auto;
-  max-height: 250px;
+  max-height: 380px;
   object-fit: contain;
   width: 100%;
 }
@@ -11684,6 +11684,39 @@ p {
   margin: 0;
 }
 
+.admin-certificate-template-field-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-certificate-template-field-tabs button {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid var(--console-line);
+  border-radius: 8px;
+  color: var(--console-muted);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 900;
+  min-height: 36px;
+  padding: 0 12px;
+}
+
+.admin-certificate-template-field-tabs button:hover,
+.admin-certificate-template-field-tabs button:focus-visible {
+  border-color: #b7a6ef;
+  color: var(--console-purple-dark);
+  outline: none;
+}
+
+.admin-certificate-template-field-tabs button.is-active {
+  background: #efe9ff;
+  border-color: #7b5ce1;
+  color: var(--console-purple-dark);
+}
+
 .admin-certificate-template-layout {
   display: grid;
   gap: 10px;
@@ -11695,7 +11728,7 @@ p {
   border-radius: 8px;
   display: grid;
   gap: 8px;
-  grid-template-columns: repeat(3, minmax(112px, 1fr)) 86px 116px;
+  grid-template-columns: repeat(3, minmax(132px, 1fr)) 100px 128px;
   margin: 0;
   padding: 12px;
 }
@@ -11737,6 +11770,37 @@ p {
 
 .admin-certificate-template-field-range input[type="number"] {
   min-width: 0;
+}
+
+.admin-certificate-template-align-options {
+  display: grid;
+  gap: 5px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.admin-certificate-template-align-options button {
+  background: #ffffff;
+  border: 1px solid var(--console-line);
+  border-radius: 8px;
+  color: var(--console-muted);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 900;
+  min-height: 40px;
+  padding: 0 8px;
+}
+
+.admin-certificate-template-align-options button:hover,
+.admin-certificate-template-align-options button:focus-visible {
+  border-color: #b7a6ef;
+  color: var(--console-purple-dark);
+  outline: none;
+}
+
+.admin-certificate-template-align-options button.is-active {
+  background: #efe9ff;
+  border-color: #7b5ce1;
+  color: var(--console-purple-dark);
 }
 
 .admin-certifications-toolbar {

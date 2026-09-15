@@ -46,6 +46,17 @@ test("certificate download accepts managed template settings with fallback", asy
   assert.match(certificationsPage, /certificateTemplate=\{accountData\.certificateTemplate\}/);
 });
 
+test("admin certificate preview applies template coordinates even without an uploaded background", async () => {
+  const source = await readFile("src/components/CertificateDownloadActions.tsx", "utf8");
+
+  assert.match(source, /export function buildTemplatePreviewCertificateSvg/);
+  assert.match(source, /buildCertificatePreviewDataUrl\([^)]*useTemplateLayout/s);
+  assert.match(source, /useTemplateLayout \|\| certificateTemplate\.backgroundImageUrl/);
+  assert.match(source, /key=\{previewSignature\}/);
+  assert.match(source, /useTemplateLayout/);
+  assert.doesNotMatch(source, /certificateTemplate\?\.backgroundImageUrl\s*\?\s*buildManagedCertificateSvg\(certificate, holderName, certificateTemplate\)\s*:\s*buildCertificateSvg\(certificate, holderName, logoDataUrl\)/s);
+});
+
 test("certificate SVG escapes the association name for valid XML rendering", async () => {
   const source = await readFile("src/components/CertificateDownloadActions.tsx", "utf8");
 

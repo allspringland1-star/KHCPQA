@@ -10,6 +10,7 @@ type CertificateDownloadActionsProps = {
   certificate: AccountCertificate;
   certificateTemplate?: CertificateTemplate | null;
   holderName?: string;
+  useTemplateLayout?: boolean;
   variant?: "compact" | "full";
 };
 
@@ -29,6 +30,9 @@ const certificateSize = {
 
 const certificateLogoPath = "/assets/brand/khcpqa-logo-mark.png";
 let certificateLogoDataUrl: string | null = null;
+
+const certificateLabelFont = "Malgun Gothic, Apple SD Gothic Neo, serif";
+const certificateValueFont = "Malgun Gothic, Apple SD Gothic Neo, Arial, sans-serif";
 
 const statusLabels: Record<string, string> = {
   expired: "만료됨",
@@ -189,6 +193,41 @@ function renderCertificateLogo(logoDataUrl?: string) {
   <text x="450" y="188" text-anchor="middle" font-family="Malgun Gothic, Apple SD Gothic Neo, Arial, sans-serif" font-size="23" font-weight="900" fill="#6b4b12">KH</text>`;
 }
 
+function renderDefaultCertificateDesignBase(logoDataUrl?: string) {
+  return `<defs>
+    <linearGradient id="gold" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#d6b25e"/>
+      <stop offset="0.48" stop-color="#f2df91"/>
+      <stop offset="1" stop-color="#9f7826"/>
+    </linearGradient>
+    <filter id="paperShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="24" flood-color="#34205f" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+  <rect width="900" height="1272" fill="#f7f3ea"/>
+  <rect x="54" y="54" width="792" height="1164" rx="18" fill="#fffdf7" filter="url(#paperShadow)"/>
+  <rect x="86" y="86" width="728" height="1100" rx="8" fill="none" stroke="url(#gold)" stroke-width="8"/>
+  <rect x="108" y="108" width="684" height="1056" rx="4" fill="none" stroke="#d7bd72" stroke-width="2" stroke-dasharray="10 8"/>
+  ${renderCertificateLogo(logoDataUrl)}
+  <text x="450" y="298" text-anchor="middle" font-family="${certificateLabelFont}" font-size="55" font-weight="800" fill="#171421" letter-spacing="14">자격증</text>
+  <text x="450" y="344" text-anchor="middle" font-family="Georgia, serif" font-size="27" font-style="italic" fill="#252032">Certificate of qualification</text>
+  <text x="450" y="402" text-anchor="middle" font-family="${certificateValueFont}" font-size="16" font-weight="800" fill="#6d5f47">The Korea Association for Health &amp; Beauty Certification</text>
+  <line x1="178" y1="448" x2="722" y2="448" stroke="#e4d4a0" stroke-width="2"/>
+  <text x="195" y="524" font-family="${certificateLabelFont}" font-size="23" font-weight="730" fill="#1f1a28">성명</text>
+  <text x="195" y="604" font-family="${certificateLabelFont}" font-size="23" font-weight="730" fill="#1f1a28">과정명</text>
+  <text x="195" y="690" font-family="${certificateLabelFont}" font-size="23" font-weight="730" fill="#1f1a28">자격번호</text>
+  <text x="195" y="760" font-family="${certificateLabelFont}" font-size="23" font-weight="730" fill="#1f1a28">발급일</text>
+  <text x="195" y="824" font-family="${certificateLabelFont}" font-size="23" font-weight="730" fill="#1f1a28">상태</text>
+  <text x="450" y="922" text-anchor="middle" font-family="${certificateLabelFont}" font-size="23" font-weight="740" fill="#252032">위 사람은 KAHC 자격 과정의 취득자로 확인되어</text>
+  <text x="450" y="961" text-anchor="middle" font-family="${certificateLabelFont}" font-size="23" font-weight="740" fill="#252032">위와 같이 자격을 인정합니다.</text>
+  <text x="450" y="1017" text-anchor="middle" font-family="Georgia, serif" font-size="14" font-style="italic" font-weight="700" fill="#574f60">This certificate verifies completion and qualification for the listed course.</text>
+  <circle cx="270" cy="1100" r="42" fill="url(#gold)" opacity="0.92"/>
+  <circle cx="270" cy="1100" r="30" fill="none" stroke="#fff8d7" stroke-width="3"/>
+  <text x="270" y="1109" text-anchor="middle" font-family="${certificateValueFont}" font-size="20" font-weight="900" fill="#4f360c">KH</text>
+  <text x="590" y="1106" text-anchor="middle" font-family="${certificateValueFont}" font-size="23" font-weight="900" fill="#181421">KAHC</text>
+  <text x="590" y="1134" text-anchor="middle" font-family="${certificateValueFont}" font-size="15" font-weight="850" fill="#625868">한국건강관리사자격협회</text>`;
+}
+
 async function getSafeCertificateLogoDataUrl() {
   try {
     return await loadCertificateLogoDataUrl();
@@ -250,6 +289,31 @@ export function buildCertificateSvg(certificate: AccountCertificate, holderName?
   <text x="270" y="1109" text-anchor="middle" font-family="${valueFont}" font-size="20" font-weight="900" fill="#4f360c">KH</text>
   <text x="590" y="1106" text-anchor="middle" font-family="${valueFont}" font-size="23" font-weight="900" fill="#181421">KAHC</text>
   <text x="590" y="1134" text-anchor="middle" font-family="${valueFont}" font-size="15" font-weight="850" fill="#625868">한국건강관리사자격협회</text>
+</svg>`;
+}
+
+export function buildTemplatePreviewCertificateSvg(
+  certificate: AccountCertificate,
+  holderName: string | undefined,
+  certificateTemplate: CertificateTemplate,
+  logoDataUrl?: string
+) {
+  const data = toExportData(certificate, holderName);
+  const layout = certificateTemplate.layout;
+  const background = certificateTemplate.backgroundImageUrl
+    ? `<rect width="${certificateSize.width}" height="${certificateSize.height}" fill="#fff"/>
+  <image href="${escapeXml(certificateTemplate.backgroundImageUrl)}" x="0" y="0" width="${certificateSize.width}" height="${certificateSize.height}" preserveAspectRatio="xMidYMid slice"/>`
+    : renderDefaultCertificateDesignBase(logoDataUrl);
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${certificateSize.width}" height="${certificateSize.height}" viewBox="0 0 ${certificateSize.width} ${certificateSize.height}" role="img" aria-label="${escapeXml(data.courseTitle)} template preview certificate">
+  ${background}
+  ${renderManagedText(data.holderName, layout.holderName, 18, 2)}
+  ${renderManagedText(data.courseTitle, layout.courseTitle, 18, 2)}
+  ${renderManagedText(data.number, layout.certificateNumber, 24, 2)}
+  ${renderManagedText(data.issuedAt, layout.issuedAt, 24, 1)}
+  ${renderManagedText(data.status, layout.status, 16, 1)}
+  ${renderManagedText(data.verificationCode, layout.verificationCode, 28, 1)}
 </svg>`;
 }
 
@@ -355,11 +419,13 @@ function filenameFor(certificate: AccountCertificate, extension: "png" | "svg") 
 async function buildCertificatePreviewDataUrl(
   certificate: AccountCertificate,
   holderName?: string,
-  certificateTemplate?: CertificateTemplate | null
+  certificateTemplate?: CertificateTemplate | null,
+  options: { useTemplateLayout?: boolean } = {}
 ) {
   const logoDataUrl = await getSafeCertificateLogoDataUrl();
-  const svg = certificateTemplate?.backgroundImageUrl
-    ? buildManagedCertificateSvg(certificate, holderName, certificateTemplate)
+  const useTemplateLayout = options.useTemplateLayout ?? false;
+  const svg = certificateTemplate && (useTemplateLayout || certificateTemplate.backgroundImageUrl)
+    ? buildTemplatePreviewCertificateSvg(certificate, holderName, certificateTemplate, logoDataUrl)
     : buildCertificateSvg(certificate, holderName, logoDataUrl);
 
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
@@ -448,10 +514,12 @@ export function CertificateDownloadActions({
 export function CertificateInlinePreview({
   certificate,
   certificateTemplate,
-  holderName
+  holderName,
+  useTemplateLayout = false
 }: Omit<CertificateDownloadActionsProps, "variant">) {
   const [previewUrl, setPreviewUrl] = useState("");
   const [previewError, setPreviewError] = useState("");
+  const previewSignature = JSON.stringify({ certificate, certificateTemplate, holderName, useTemplateLayout });
 
   useEffect(() => {
     let isCancelled = false;
@@ -461,7 +529,7 @@ export function CertificateInlinePreview({
       setPreviewUrl("");
 
       try {
-        const dataUrl = await buildCertificatePreviewDataUrl(certificate, holderName, certificateTemplate);
+        const dataUrl = await buildCertificatePreviewDataUrl(certificate, holderName, certificateTemplate, { useTemplateLayout });
 
         if (!isCancelled) {
           setPreviewUrl(dataUrl);
@@ -478,7 +546,7 @@ export function CertificateInlinePreview({
     return () => {
       isCancelled = true;
     };
-  }, [certificate, certificateTemplate, holderName]);
+  }, [certificate, certificateTemplate, holderName, previewSignature, useTemplateLayout]);
 
   if (previewUrl) {
     return (
@@ -486,6 +554,7 @@ export function CertificateInlinePreview({
         alt={`${holderName} ${certificate.title} 자격증 기본 디자인 미리보기`}
         className="certificate-inline-preview-image"
         height={certificateSize.height}
+        key={previewSignature}
         src={previewUrl}
         unoptimized
         width={certificateSize.width}
@@ -508,11 +577,13 @@ export function CertificateInlinePreview({
 export function CertificateImageViewer({
   certificate,
   certificateTemplate,
-  holderName
+  holderName,
+  useTemplateLayout = false
 }: Omit<CertificateDownloadActionsProps, "variant">) {
   const [isOpen, setIsOpen] = useState(false);
   const [previewUrl, setPreviewUrl] = useState("");
   const [previewError, setPreviewError] = useState("");
+  const previewSignature = JSON.stringify({ certificate, certificateTemplate, holderName, useTemplateLayout });
 
   useEffect(() => {
     if (!isOpen) {
@@ -526,7 +597,7 @@ export function CertificateImageViewer({
       setPreviewUrl("");
 
       try {
-        const dataUrl = await buildCertificatePreviewDataUrl(certificate, holderName, certificateTemplate);
+        const dataUrl = await buildCertificatePreviewDataUrl(certificate, holderName, certificateTemplate, { useTemplateLayout });
 
         if (!isCancelled) {
           setPreviewUrl(dataUrl);
@@ -549,7 +620,7 @@ export function CertificateImageViewer({
       isCancelled = true;
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [certificate, certificateTemplate, holderName, isOpen]);
+  }, [certificate, certificateTemplate, holderName, isOpen, previewSignature, useTemplateLayout]);
 
   return (
     <>
@@ -595,6 +666,7 @@ export function CertificateImageViewer({
                   alt={`${holderName} ${certificate.title} 자격증 미리보기`}
                   className="certificate-preview-image"
                   height={certificateSize.height}
+                  key={previewSignature}
                   src={previewUrl}
                   unoptimized
                   width={certificateSize.width}

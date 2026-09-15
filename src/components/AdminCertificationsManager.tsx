@@ -55,6 +55,12 @@ const templateLayoutFieldLabels: Record<CertificateTemplateLayoutFieldKey, strin
 
 const templateLayoutFieldKeys = Object.keys(templateLayoutFieldLabels) as CertificateTemplateLayoutFieldKey[];
 
+const templateAlignOptions = [
+  { label: "왼쪽", value: "start" },
+  { label: "가운데", value: "middle" },
+  { label: "오른쪽", value: "end" }
+] as const;
+
 const emptyTemplate: CertificateTemplateFormValue = {
   backgroundImageUrl: "",
   layout: defaultCertificateTemplateLayout,
@@ -101,6 +107,7 @@ export function AdminCertificationsManager({
   const [templateValue, setTemplateValue] = useState<CertificateTemplateFormValue>(certificateTemplate ?? emptyTemplate);
   const [templateResult, setTemplateResult] = useState<SaveAdminCertificationResult | null>(null);
   const [templateImageMessage, setTemplateImageMessage] = useState("");
+  const [selectedTemplateField, setSelectedTemplateField] = useState<CertificateTemplateLayoutFieldKey>("holderName");
   const [isPending, startTransition] = useTransition();
   const [isTemplatePending, startTemplateTransition] = useTransition();
   const issuedCount = certifications.filter((certification) => certification.status === "issued").length;
@@ -282,7 +289,7 @@ export function AdminCertificationsManager({
 
   return (
     <section className="admin-certifications-manager">
-      <form className="admin-certificate-template-panel" onSubmit={handleTemplateSubmit}>
+      <form className="admin-certificate-template-panel" noValidate onSubmit={handleTemplateSubmit}>
         <div className="admin-certificate-template-heading">
           <div>
             <span>자격증 디자인</span>
@@ -303,12 +310,14 @@ export function AdminCertificationsManager({
                 certificate={certificateTemplatePreviewSample}
                 certificateTemplate={templateValue}
                 holderName="홍길동"
+                useTemplateLayout
               />
             </div>
             <CertificateImageViewer
               certificate={certificateTemplatePreviewSample}
               certificateTemplate={templateValue}
               holderName="홍길동"
+              useTemplateLayout
             />
             <span>{templateValue.backgroundImageUrl ? "업로드 디자인 적용 중" : "기본 디자인 미리보기"}</span>
           </div>
@@ -352,8 +361,22 @@ export function AdminCertificationsManager({
               ) : null}
             </div>
 
+            <div className="admin-certificate-template-field-tabs" aria-label="조정할 자격증 텍스트 선택">
+              {templateLayoutFieldKeys.map((key) => (
+                <button
+                  aria-pressed={selectedTemplateField === key}
+                  className={selectedTemplateField === key ? "is-active" : undefined}
+                  key={key}
+                  onClick={() => setSelectedTemplateField(key)}
+                  type="button"
+                >
+                  {templateLayoutFieldLabels[key]}
+                </button>
+              ))}
+            </div>
+
             <div className="admin-certificate-template-layout">
-              {templateLayoutFieldKeys.map((key) => {
+              {templateLayoutFieldKeys.filter((key) => key === selectedTemplateField).map((key) => {
                 const field = templateValue.layout[key];
 
                 return (
@@ -380,11 +403,19 @@ export function AdminCertificationsManager({
                     </label>
                     <label>
                       정렬
-                      <select onChange={(event) => updateTemplateLayoutField(key, "align", event.target.value)} value={field.align}>
-                        <option value="start">왼쪽</option>
-                        <option value="middle">가운데</option>
-                        <option value="end">오른쪽</option>
-                      </select>
+                      <span className="admin-certificate-template-align-options">
+                        {templateAlignOptions.map((option) => (
+                          <button
+                            aria-pressed={field.align === option.value}
+                            className={field.align === option.value ? "is-active" : undefined}
+                            key={option.value}
+                            onClick={() => updateTemplateLayoutField(key, "align", option.value)}
+                            type="button"
+                          >
+                            {option.label}
+                          </button>
+                        ))}
+                      </span>
                     </label>
                   </fieldset>
                 );
