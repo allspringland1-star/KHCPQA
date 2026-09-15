@@ -286,7 +286,7 @@ export function buildTemplatePreviewCertificateSvg(
   const layout = certificateTemplate.layout;
   const background = certificateTemplate.backgroundImageUrl
     ? `<rect width="${certificateSize.width}" height="${certificateSize.height}" fill="#fff"/>
-  <image href="${escapeXml(certificateTemplate.backgroundImageUrl)}" x="0" y="0" width="${certificateSize.width}" height="${certificateSize.height}" preserveAspectRatio="xMidYMid slice"/>`
+  <image href="${escapeXml(certificateTemplate.backgroundImageUrl)}" x="0" y="0" width="${certificateSize.width}" height="${certificateSize.height}" preserveAspectRatio="xMidYMid meet"/>`
     : renderDefaultCertificateDesignBase(logoDataUrl);
 
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -307,7 +307,7 @@ export function buildManagedCertificateSvg(certificate: AccountCertificate, hold
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${certificateSize.width}" height="${certificateSize.height}" viewBox="0 0 ${certificateSize.width} ${certificateSize.height}" role="img" aria-label="${escapeXml(data.courseTitle)} managed qualification certificate">
   <rect width="${certificateSize.width}" height="${certificateSize.height}" fill="#fff"/>
-  <image href="${escapeXml(certificateTemplate.backgroundImageUrl)}" x="0" y="0" width="${certificateSize.width}" height="${certificateSize.height}" preserveAspectRatio="xMidYMid slice"/>
+  <image href="${escapeXml(certificateTemplate.backgroundImageUrl)}" x="0" y="0" width="${certificateSize.width}" height="${certificateSize.height}" preserveAspectRatio="xMidYMid meet"/>
   ${renderManagedText(data.holderName, layout.holderName, 18, 2)}
   ${renderManagedText(data.courseTitle, layout.courseTitle, 18, 2)}
   ${renderManagedText(data.number, layout.certificateNumber, 24, 2)}
@@ -331,7 +331,16 @@ async function loadImageElement(src: string) {
 
 export async function drawCertificateTemplateBackground(context: CanvasRenderingContext2D, certificateTemplate: CertificateTemplate) {
   const background = await loadImageElement(certificateTemplate.backgroundImageUrl);
-  context.drawImage(background, 0, 0, certificateSize.width, certificateSize.height);
+  context.fillStyle = "#ffffff";
+  context.fillRect(0, 0, certificateSize.width, certificateSize.height);
+
+  const scale = Math.min(certificateSize.width / background.naturalWidth, certificateSize.height / background.naturalHeight);
+  const width = Math.round(background.naturalWidth * scale);
+  const height = Math.round(background.naturalHeight * scale);
+  const x = Math.round((certificateSize.width - width) / 2);
+  const y = Math.round((certificateSize.height - height) / 2);
+
+  context.drawImage(background, x, y, width, height);
 }
 
 function drawTemplateText(context: CanvasRenderingContext2D, value: string, field: CertificateTemplate["layout"]["holderName"], maxLength: number, maxLines = 2) {

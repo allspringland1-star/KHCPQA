@@ -146,6 +146,11 @@ test("AdminCertificationsManager exposes certificate template upload and layout 
   assert.match(managerSource, /handleTemplateImageChange/);
   assert.match(managerSource, /new FileReader\(\)/);
   assert.match(managerSource, /reader\.readAsDataURL\(file\)/);
+  assert.match(managerSource, /recommendedTemplateImage/);
+  assert.match(managerSource, /naturalWidth/);
+  assert.match(managerSource, /naturalHeight/);
+  assert.match(managerSource, /sizeLabel/);
+  assert.match(managerSource, /권장 규격은/);
   assert.match(managerSource, /선택됨\. 적용 저장을 누르면 업로드됩니다\./);
   assert.match(managerSource, /배경 이미지 선택/);
   assert.match(managerSource, /이미지 변경/);

@@ -45,6 +45,10 @@ test("certificate download accepts managed template settings with fallback", asy
   assert.match(source, /backgroundImageUrl/);
   assert.match(source, /layout\.holderName/);
   assert.match(source, /buildManagedCertificateSvg/);
+  assert.match(source, /preserveAspectRatio="xMidYMid meet"/);
+  assert.match(source, /Math\.min\(certificateSize\.width \/ background\.naturalWidth, certificateSize\.height \/ background\.naturalHeight\)/);
+  assert.match(source, /context\.drawImage\(background, x, y, width, height\)/);
+  assert.doesNotMatch(source, /context\.drawImage\(background, 0, 0, certificateSize\.width, certificateSize\.height\)/);
   assert.match(source, /buildCertificateSvg\(certificate, holderName, logoDataUrl\)/);
   assert.match(overviewPage, /certificateTemplate=\{accountData\.certificateTemplate\}/);
   assert.match(certificationsPage, /certificateTemplate=\{accountData\.certificateTemplate\}/);

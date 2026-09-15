@@ -71,6 +71,12 @@ const templateLayoutLimits = {
   x: { max: 900, min: 0, step: 5 },
   y: { max: 1272, min: 0, step: 5 }
 } as const;
+const recommendedTemplateImage = {
+  aspectRatio: 900 / 1272,
+  height: 1272,
+  ratioTolerance: 0.04,
+  width: 900
+};
 
 const certificateTemplatePreviewSample = {
   issuedAt: "2026. 09. 14.",
@@ -225,8 +231,26 @@ export function AdminCertificationsManager({
         return;
       }
 
-      setSelectedTemplateImage({ fileName: file.name, previewDataUrl: reader.result });
-      setTemplateImageMessage(`${file.name} 선택됨. 적용 저장을 누르면 업로드됩니다.`);
+      const previewDataUrl = reader.result;
+      const previewImage = new Image();
+      previewImage.onload = () => {
+        const width = previewImage.naturalWidth;
+        const height = previewImage.naturalHeight;
+        const isSmall = width < recommendedTemplateImage.width || height < recommendedTemplateImage.height;
+        const isWrongRatio = Math.abs(width / height - recommendedTemplateImage.aspectRatio) > recommendedTemplateImage.ratioTolerance;
+        const sizeLabel = ` (${width}x${height}px)`;
+        const warning = isSmall || isWrongRatio
+          ? ` 권장 규격은 ${recommendedTemplateImage.width}x${recommendedTemplateImage.height}px 세로형입니다.`
+          : "";
+
+        setSelectedTemplateImage({ fileName: file.name, previewDataUrl });
+        setTemplateImageMessage(`${file.name}${sizeLabel} 선택됨. 적용 저장을 누르면 업로드됩니다.${warning}`);
+      };
+      previewImage.onerror = () => {
+        setSelectedTemplateImage({ fileName: file.name, previewDataUrl });
+        setTemplateImageMessage(`${file.name} 선택됨. 적용 저장을 누르면 업로드됩니다.`);
+      };
+      previewImage.src = previewDataUrl;
     };
     reader.onerror = () => {
       setSelectedTemplateImage(null);
