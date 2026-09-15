@@ -152,6 +152,7 @@ test("AdminCertificationsManager exposes certificate template upload and layout 
   assert.match(managerSource, /certificateTemplate=\{previewTemplateValue\}/);
   assert.match(managerSource, /선택한 이미지 미리보기/);
   assert.match(managerSource, /ref=\{templateImageInputRef\}/);
+  assert.match(managerSource, /admin-certificate-template-upload-status/);
   assert.match(managerSource, /templateLayoutFieldLabels/);
   assert.match(managerSource, /기본 위치로 초기화/);
 });
@@ -171,6 +172,8 @@ test("certificate template panel shows the generated design preview inline", asy
   assert.match(styleSource, /\.certificate-inline-preview-image/);
   assert.match(styleSource, /\.certificate-inline-preview-guide/);
   assert.match(styleSource, /\.admin-certificate-template-upload span/);
+  assert.match(styleSource, /\.admin-certificate-template-upload-status/);
+  assert.match(styleSource, /\.admin-certificate-template-upload-status span/);
 });
 
 test("certificate template layout controls update the preview workspace before saving", async () => {

@@ -467,7 +467,12 @@ export function AdminCertificationsManager({
                 <RotateCcw size={15} />
                 기본 디자인으로 복원
               </button>
-              {templateImageMessage ? <p className="form-success"><FileImage size={16} />{templateImageMessage}</p> : null}
+              {templateImageMessage ? (
+                <p className="form-success admin-certificate-template-upload-status" role="status">
+                  <FileImage size={15} />
+                  <span>{templateImageMessage}</span>
+                </p>
+              ) : null}
               {templateResult ? (
                 <p className={templateResult.ok ? "form-success" : "form-error"} role="status">
                   {templateResult.ok ? <CheckCircle2 size={16} /> : null}
