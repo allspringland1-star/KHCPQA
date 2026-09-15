@@ -11786,6 +11786,13 @@ p {
   position: absolute;
 }
 
+.admin-certificate-template-upload span {
+  max-width: 148px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .admin-certificate-template-quiet-action {
   border-color: #e7e0f7;
   border-radius: 8px;

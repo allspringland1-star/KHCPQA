@@ -1,7 +1,7 @@
 "use client";
 
-import type { FormEvent } from "react";
-import { useMemo, useState, useTransition } from "react";
+import type { ChangeEvent, FormEvent } from "react";
+import { useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, Clipboard, ClipboardCheck, Clock3, FileImage, Minus, Pencil, Plus, RotateCcw, Save, Search, ShieldCheck, Upload, X } from "lucide-react";
 import {
@@ -43,6 +43,11 @@ type CertificationCourseOption = {
 };
 
 type CertificateTemplateFormValue = CertificateTemplate;
+
+type SelectedTemplateImage = {
+  fileName: string;
+  previewDataUrl: string;
+};
 
 const templateLayoutFieldLabels: Record<CertificateTemplateLayoutFieldKey, string> = {
   certificateNumber: "자격번호",
@@ -107,8 +112,10 @@ export function AdminCertificationsManager({
   const [savedTemplateSignature, setSavedTemplateSignature] = useState(() => JSON.stringify(certificateTemplate ?? emptyTemplate));
   const [templateResult, setTemplateResult] = useState<SaveAdminCertificationResult | null>(null);
   const [templateImageMessage, setTemplateImageMessage] = useState("");
+  const [selectedTemplateImage, setSelectedTemplateImage] = useState<SelectedTemplateImage | null>(null);
   const [selectedTemplateField, setSelectedTemplateField] = useState<CertificateTemplateLayoutFieldKey>("holderName");
   const [isTemplateSaving, setIsTemplateSaving] = useState(false);
+  const templateImageInputRef = useRef<HTMLInputElement>(null);
   const [isPending, startTransition] = useTransition();
   const [isTemplatePending, startTemplateTransition] = useTransition();
   const issuedCount = certifications.filter((certification) => certification.status === "issued").length;
@@ -146,7 +153,11 @@ export function AdminCertificationsManager({
       return matchesKeyword && matchesStatus;
     });
   }, [certifications, search, statusFilter]);
-  const hasUnsavedTemplateChanges = JSON.stringify(templateValue) !== savedTemplateSignature;
+  const previewTemplateValue = useMemo(
+    () => selectedTemplateImage ? { ...templateValue, backgroundImageUrl: selectedTemplateImage.previewDataUrl } : templateValue,
+    [selectedTemplateImage, templateValue]
+  );
+  const hasUnsavedTemplateChanges = selectedTemplateImage !== null || JSON.stringify(templateValue) !== savedTemplateSignature;
 
   function openCreateModal() {
     setMode("create");
@@ -187,7 +198,41 @@ export function AdminCertificationsManager({
 
   function updateTemplateField(name: keyof CertificateTemplateFormValue, value: string) {
     setTemplateValue((current) => ({ ...current, [name]: value }));
+    if (name === "backgroundImageUrl") {
+      setSelectedTemplateImage(null);
+      if (templateImageInputRef.current) {
+        templateImageInputRef.current.value = "";
+      }
+    }
     setTemplateResult(null);
+  }
+
+  function handleTemplateImageChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.currentTarget.files?.[0];
+    setTemplateResult(null);
+
+    if (!file) {
+      setSelectedTemplateImage(null);
+      setTemplateImageMessage("");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result !== "string") {
+        setSelectedTemplateImage(null);
+        setTemplateImageMessage("선택한 이미지를 미리보기로 불러오지 못했습니다.");
+        return;
+      }
+
+      setSelectedTemplateImage({ fileName: file.name, previewDataUrl: reader.result });
+      setTemplateImageMessage(`${file.name} 선택됨. 적용 저장을 누르면 업로드됩니다.`);
+    };
+    reader.onerror = () => {
+      setSelectedTemplateImage(null);
+      setTemplateImageMessage("선택한 이미지를 미리보기로 불러오지 못했습니다.");
+    };
+    reader.readAsDataURL(file);
   }
 
   function updateTemplateLayoutField(
@@ -243,6 +288,10 @@ export function AdminCertificationsManager({
       ...emptyTemplate,
       backgroundImageUrl: ""
     });
+    setSelectedTemplateImage(null);
+    if (templateImageInputRef.current) {
+      templateImageInputRef.current.value = "";
+    }
     setTemplateResult(null);
     setTemplateImageMessage("");
   }
@@ -318,6 +367,10 @@ export function AdminCertificationsManager({
         if (nextResult.ok) {
           setTemplateValue(nextTemplate);
           setSavedTemplateSignature(JSON.stringify(nextTemplate));
+          setSelectedTemplateImage(null);
+          if (templateImageInputRef.current) {
+            templateImageInputRef.current.value = "";
+          }
           router.refresh();
         }
       } finally {
@@ -362,7 +415,7 @@ export function AdminCertificationsManager({
             <div className="admin-certificate-template-preview-frame">
               <CertificateInlinePreview
                 certificate={certificateTemplatePreviewSample}
-                certificateTemplate={templateValue}
+                certificateTemplate={previewTemplateValue}
                 holderName="홍길동"
                 selectedField={selectedTemplateField}
                 selectedFieldLabel={templateLayoutFieldLabels[selectedTemplateField]}
@@ -371,11 +424,11 @@ export function AdminCertificationsManager({
             </div>
             <CertificateImageViewer
               certificate={certificateTemplatePreviewSample}
-              certificateTemplate={templateValue}
+              certificateTemplate={previewTemplateValue}
               holderName="홍길동"
               useTemplateLayout
             />
-            <span>{templateValue.backgroundImageUrl ? "업로드 디자인 적용 중" : "기본 디자인 미리보기"}</span>
+            <span>{selectedTemplateImage ? "선택한 이미지 미리보기" : templateValue.backgroundImageUrl ? "업로드 디자인 적용 중" : "기본 디자인 미리보기"}</span>
           </div>
 
           <div className="admin-certificate-template-workspace">
@@ -397,8 +450,14 @@ export function AdminCertificationsManager({
               </label>
               <label className="admin-certificate-template-upload">
                 <Upload size={15} />
-                <span>배경 이미지 업로드</span>
-                <input accept="image/jpeg,image/png,image/webp,image/gif" name="certificateTemplateImage" type="file" />
+                <span>{selectedTemplateImage ? selectedTemplateImage.fileName : "배경 이미지 업로드"}</span>
+                <input
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  name="certificateTemplateImage"
+                  onChange={handleTemplateImageChange}
+                  ref={templateImageInputRef}
+                  type="file"
+                />
               </label>
               <button className="secondary-button admin-certificate-template-quiet-action" onClick={resetTemplateLayout} type="button">
                 <RotateCcw size={15} />
