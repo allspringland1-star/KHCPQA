@@ -173,6 +173,7 @@ test("certificate template layout controls update the preview workspace before s
   assert.match(managerSource, /admin-certificate-template-stepper/);
   assert.match(managerSource, /nudgeTemplateLayoutField\(key, "x"/);
   assert.match(managerSource, /nudgeTemplateLayoutField\(key, "y"/);
+  assert.match(managerSource, /nudgeTemplateLayoutField\(key, "fontSize"/);
   assert.match(managerSource, /selectedField=\{selectedTemplateField\}/);
   assert.match(managerSource, /selectedFieldLabel=\{templateLayoutFieldLabels\[selectedTemplateField\]\}/);
   assert.match(managerSource, /useTemplateLayout/);
@@ -185,6 +186,9 @@ test("certificate template layout controls update the preview workspace before s
   assert.match(styleSource, /grid-template-columns: minmax\(360px, 0\.48fr\) minmax\(0, 1fr\)/);
   assert.match(styleSource, /max-height: 560px/);
   assert.match(styleSource, /\.certificate-inline-preview-guide/);
+  assert.match(styleSource, /\.certificate-inline-preview-guide::before/);
+  assert.match(styleSource, /grid-template-columns: repeat\(5, minmax\(0, 1fr\)\)/);
+  assert.match(styleSource, /min-height: 28px/);
 });
 
 test("certificate template editor focuses one field while keeping every field selectable", async () => {
@@ -208,6 +212,7 @@ test("certificate template editor owns validation and coordinate controls", asyn
   assert.match(managerSource, /onSubmit=\{handleTemplateSubmit\}/);
   assert.match(managerSource, /hasUnsavedTemplateChanges/);
   assert.match(managerSource, /저장되지 않은 변경/);
+  assert.match(managerSource, /admin-certificate-template-quiet-action/);
   assert.match(managerSource, /updateTemplateLayoutField\(key, "x"/);
   assert.match(managerSource, /updateTemplateLayoutField\(key, "y"/);
   assert.doesNotMatch(managerSource, /templateAlignOptions/);

@@ -11686,22 +11686,35 @@ p {
 }
 
 .certificate-inline-preview-guide {
-  background: rgba(123, 92, 225, 0.12);
-  border: 1px dashed #7b5ce1;
-  border-radius: 6px;
-  box-shadow: 0 0 0 3px rgba(123, 92, 225, 0.08);
+  background: #ffffff;
+  border: 1px solid #7b5ce1;
+  border-radius: 999px;
+  box-shadow: 0 5px 14px rgba(84, 55, 189, 0.16);
   color: var(--console-purple-dark);
   font-size: 10px;
   font-weight: 900;
   left: 0;
   line-height: 1;
-  min-width: 46px;
-  padding: 5px 6px;
+  min-width: 38px;
+  padding: 4px 7px;
   pointer-events: none;
   position: absolute;
   top: 0;
-  transform: translate(-4px, -100%);
+  transform: translate(8px, -140%);
   white-space: nowrap;
+}
+
+.certificate-inline-preview-guide::before {
+  background: #7b5ce1;
+  border: 2px solid #ffffff;
+  border-radius: 999px;
+  box-shadow: 0 0 0 2px rgba(123, 92, 225, 0.2);
+  content: "";
+  height: 8px;
+  left: -12px;
+  position: absolute;
+  top: calc(100% + 4px);
+  width: 8px;
 }
 
 .admin-certificate-template-preview > span {
@@ -11766,6 +11779,16 @@ p {
   position: absolute;
 }
 
+.admin-certificate-template-quiet-action {
+  border-color: #e7e0f7;
+  border-radius: 8px;
+  box-shadow: none;
+  color: #6e5a92;
+  font-size: 12px;
+  min-height: 40px;
+  padding: 0 12px;
+}
+
 .admin-certificate-template-controls .form-success,
 .admin-certificate-template-controls .form-error {
   align-items: center;
@@ -11779,9 +11802,9 @@ p {
   border: 1px solid var(--console-line);
   border-radius: 8px;
   display: grid;
-  gap: 4px;
+  gap: 3px;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  padding: 4px;
+  padding: 3px;
 }
 
 .admin-certificate-template-field-tabs button {
@@ -11793,10 +11816,10 @@ p {
   cursor: pointer;
   display: inline-flex;
   justify-content: center;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 900;
-  min-height: 32px;
-  padding: 0 8px;
+  min-height: 28px;
+  padding: 0 7px;
 }
 
 .admin-certificate-template-field-tabs button:hover,
@@ -11814,23 +11837,24 @@ p {
 
 .admin-certificate-template-layout {
   display: grid;
-  gap: 10px;
+  gap: 8px;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 520px), 1fr));
 }
 
 .admin-certificate-template-layout fieldset {
+  background: #ffffff;
   border: 1px solid var(--console-line);
   border-radius: 8px;
   display: grid;
-  gap: 8px;
-  grid-template-columns: repeat(3, minmax(132px, 1fr)) 92px;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(150px, 1fr)) 78px;
   margin: 0;
-  padding: 12px;
+  padding: 10px 12px 12px;
 }
 
 .admin-certificate-template-layout legend {
   color: var(--console-ink);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 900;
   padding: 0 4px;
 }
@@ -11840,16 +11864,20 @@ p {
   display: grid;
   font-size: 11px;
   font-weight: 900;
-  gap: 5px;
+  gap: 4px;
 }
 
 .admin-certificate-template-layout input[type="color"] {
+  align-self: end;
+  height: 34px;
   min-width: 44px;
-  padding: 4px;
+  padding: 3px;
+  width: 52px;
 }
 
 .admin-certificate-template-field-range {
-  grid-template-columns: minmax(160px, 1fr) 154px;
+  align-content: end;
+  grid-template-columns: minmax(120px, 1fr) 128px;
 }
 
 .admin-certificate-template-field-range > span {
@@ -11858,7 +11886,7 @@ p {
 
 .admin-certificate-template-field-range input[type="range"] {
   accent-color: var(--console-purple);
-  min-height: 24px;
+  min-height: 18px;
   padding: 0;
   width: 100%;
 }
@@ -11869,8 +11897,8 @@ p {
 
 .admin-certificate-template-stepper {
   display: grid;
-  gap: 4px;
-  grid-template-columns: 32px minmax(0, 1fr) 32px;
+  gap: 3px;
+  grid-template-columns: 26px minmax(0, 1fr) 26px;
 }
 
 .admin-certificate-template-stepper button {
@@ -11882,8 +11910,14 @@ p {
   cursor: pointer;
   display: inline-flex;
   justify-content: center;
-  min-height: 40px;
+  min-height: 34px;
   padding: 0;
+}
+
+.admin-certificate-template-stepper input[type="number"] {
+  min-height: 34px;
+  padding: 0 8px;
+  text-align: center;
 }
 
 .admin-certificate-template-stepper button:hover,
@@ -13662,7 +13696,7 @@ p {
   }
 
   .admin-certificate-template-layout fieldset {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
   }
 
   .admin-users-modal-backdrop {

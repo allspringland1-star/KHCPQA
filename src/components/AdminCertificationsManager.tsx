@@ -400,11 +400,11 @@ export function AdminCertificationsManager({
                 <span>배경 이미지 업로드</span>
                 <input accept="image/jpeg,image/png,image/webp,image/gif" name="certificateTemplateImage" type="file" />
               </label>
-              <button className="secondary-button" onClick={resetTemplateLayout} type="button">
+              <button className="secondary-button admin-certificate-template-quiet-action" onClick={resetTemplateLayout} type="button">
                 <RotateCcw size={15} />
                 기본 위치로 초기화
               </button>
-              <button className="secondary-button" onClick={restoreDefaultTemplate} type="button">
+              <button className="secondary-button admin-certificate-template-quiet-action" onClick={restoreDefaultTemplate} type="button">
                 <RotateCcw size={15} />
                 기본 디자인으로 복원
               </button>
@@ -467,7 +467,15 @@ export function AdminCertificationsManager({
                     <label className="admin-certificate-template-field-range">
                       <span>크기</span>
                       <input min={8} max={96} onChange={(event) => updateTemplateLayoutField(key, "fontSize", event.target.value)} type="range" value={field.fontSize} />
-                      <input min={8} max={96} onChange={(event) => updateTemplateLayoutField(key, "fontSize", event.target.value)} type="number" value={field.fontSize} />
+                      <span className="admin-certificate-template-stepper">
+                        <button aria-label="글자 크기 1 줄이기" onClick={() => nudgeTemplateLayoutField(key, "fontSize", -1)} type="button">
+                          <Minus size={13} />
+                        </button>
+                        <input min={8} max={96} onChange={(event) => updateTemplateLayoutField(key, "fontSize", event.target.value)} type="number" value={field.fontSize} />
+                        <button aria-label="글자 크기 1 늘리기" onClick={() => nudgeTemplateLayoutField(key, "fontSize", 1)} type="button">
+                          <Plus size={13} />
+                        </button>
+                      </span>
                     </label>
                     <label>
                       색상
