@@ -147,6 +147,8 @@ test("AdminCertificationsManager exposes certificate template upload and layout 
   assert.match(managerSource, /new FileReader\(\)/);
   assert.match(managerSource, /reader\.readAsDataURL\(file\)/);
   assert.match(managerSource, /선택됨\. 적용 저장을 누르면 업로드됩니다\./);
+  assert.match(managerSource, /배경 이미지 선택/);
+  assert.match(managerSource, /이미지 변경/);
   assert.match(managerSource, /certificateTemplate=\{previewTemplateValue\}/);
   assert.match(managerSource, /선택한 이미지 미리보기/);
   assert.match(managerSource, /ref=\{templateImageInputRef\}/);

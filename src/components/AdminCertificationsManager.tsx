@@ -450,7 +450,7 @@ export function AdminCertificationsManager({
               </label>
               <label className="admin-certificate-template-upload">
                 <Upload size={15} />
-                <span>{selectedTemplateImage ? selectedTemplateImage.fileName : "배경 이미지 업로드"}</span>
+                <span>{selectedTemplateImage ? "이미지 변경" : "배경 이미지 선택"}</span>
                 <input
                   accept="image/jpeg,image/png,image/webp,image/gif"
                   name="certificateTemplateImage"
