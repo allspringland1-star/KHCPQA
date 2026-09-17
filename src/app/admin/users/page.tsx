@@ -3,8 +3,7 @@ import {
   AdminFilterBar,
   AdminPanel,
   AdminSearchInput,
-  AdminSelect,
-  AdminTabs
+  AdminSelect
 } from "@/components/AdminConsole";
 import { AdminUsersManager } from "@/components/AdminUsersManager";
 import { getAdminUsers } from "@/lib/admin-data";
@@ -20,7 +19,6 @@ export default async function AdminUsersPage() {
       title="사용자 관리"
     >
       <AdminPanel>
-        <AdminTabs active="사용자 목록" tabs={["사용자 목록", "역할 관리"]} />
         <AdminFilterBar>
           <AdminSearchInput placeholder="이름, 이메일 검색" />
           <AdminSelect label="역할 전체" />
