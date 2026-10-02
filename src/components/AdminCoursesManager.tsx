@@ -9,6 +9,7 @@ import { Archive, ArrowDown, ArrowUp, ArrowUpRight, CheckCircle2, FileText, Imag
 import {
   archiveAdminCourse,
   deleteAdminCourse,
+  loadPreparedCourseTranslation,
   restoreAdminCourse,
   saveAdminCourse,
   saveAdminCourseLocalization,
@@ -25,6 +26,8 @@ import {
   courseTemplatesByCategory,
   getDefaultCourseTemplateKey,
   moveCourseCurriculumItem,
+  normalizeCourseSections,
+  normalizeScheduleTracks,
   type AdminCourseLocalization,
   type AdminCourseRecord,
   type CourseContentSection,
@@ -149,6 +152,8 @@ export function AdminCoursesManager({
   const [createTemplate, setCreateTemplate] = useState<CourseTemplateKey>("practical");
   const [createTitle, setCreateTitle] = useState("");
   const [editor, setEditor] = useState<LocalizationEditor>(emptyLocalization);
+  const [preparedSourceUpdatedAt, setPreparedSourceUpdatedAt] = useState<string>();
+  const preparedRequest = useRef(0);
   const [editorTab, setEditorTab] = useState<EditorTab>("basic");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [result, setResult] = useState<SaveAdminContentResult | null>(null);
@@ -182,6 +187,8 @@ export function AdminCoursesManager({
   }, [activeCourse, courses]);
 
   useEffect(() => {
+    preparedRequest.current += 1;
+    setPreparedSourceUpdatedAt(undefined);
     if (!activeCourse) {
       setEditor(emptyLocalization);
       return;
@@ -202,7 +209,7 @@ export function AdminCoursesManager({
     });
     if (imageInputRef.current) imageInputRef.current.value = "";
     if (pdfInputRef.current) pdfInputRef.current.value = "";
-  }, [activeCourse, activeLocalization]);
+  }, [activeCourse, activeLocalization, activeLocale]);
 
   useEffect(() => () => {
     if (selectedImagePreview) URL.revokeObjectURL(selectedImagePreview);
@@ -293,6 +300,27 @@ export function AdminCoursesManager({
   function updateEditor<K extends keyof LocalizationEditor>(name: K, value: LocalizationEditor[K]) {
     setEditor((current) => ({ ...current, [name]: value }));
     setResult(null);
+  }
+
+  function loadTranslationDraft() {
+    if (!activeCourse || activeLocale === "ko") return;
+    const request = ++preparedRequest.current;
+    startTransition(async () => {
+      const response = await loadPreparedCourseTranslation({ courseId: activeCourse.id, locale: activeLocale });
+      if (request !== preparedRequest.current) return;
+      if (!response.ok) { setResult(response); return; }
+      const content = response.draft.content;
+      resetFileInputs();
+      setEditor({
+        certificationNote: content.certification_note ?? "", contentSections: normalizeCourseSections(content.content_sections),
+        curriculumText: (content.curriculum_items ?? []).join("\n"), duration: content.duration ?? "",
+        imageUrl: content.image_url ?? "", overview: content.overview ?? "", pdfFileName: content.pdf_file_name ?? "", pdfUrl: content.pdf_url ?? "",
+        recommendedText: (content.recommended_for ?? []).join("\n"), scheduleTracks: normalizeScheduleTracks(content.schedule_tracks),
+        status: "draft", summary: content.summary ?? "", title: content.title
+      });
+      setPreparedSourceUpdatedAt(response.draft.sourceUpdatedAt);
+      setResult({ ok: true, message: "한국어 원문 기준 번역 초안을 불러왔습니다. 아직 저장되지 않았습니다. 기본 정보·주차별 일정·상세 내용을 검수한 뒤 저장해 주세요." });
+    });
   }
 
   function openCreateModal() {
@@ -415,6 +443,10 @@ export function AdminCoursesManager({
   function handleLocalizationSave(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!activeCourse) return;
+    if (preparedSourceUpdatedAt && editor.status !== "reviewed") {
+      setResult({ ok: false, message: "불러온 번역을 검수한 뒤 게시 상태를 검수완료로 선택해 저장해 주세요." });
+      return;
+    }
     const formData = new FormData(event.currentTarget);
 
     setIsSaving(true);
@@ -486,6 +518,7 @@ export function AdminCoursesManager({
 
         const nextResult = await saveAdminCourseLocalization({
           ...editor,
+          expectedSourceUpdatedAt: preparedSourceUpdatedAt,
           contentSections,
           courseId: activeCourse.id,
           imageUrl,
@@ -611,6 +644,13 @@ export function AdminCoursesManager({
                 </div>
               </section>
 
+              {activeLocale !== "ko" ? (
+                <section className="admin-course-public-panel" aria-label="원문 기준 번역 초안">
+                  <div><strong>한국어 원문 기준 번역 초안</strong><p>현재 편집 내용을 준비된 번역으로 바꿉니다. 불러오기만으로 저장·공개되지 않습니다. 검수 완료로 저장하면 기존 공개본은 잠시 비공개되며, 다시 열어 최고 관리자가 공개로 저장해야 반영됩니다.</p></div>
+                  <button className="secondary-button" disabled={isPending || isSaving} onClick={loadTranslationDraft} type="button">원문 기준 번역 불러오기</button>
+                </section>
+              ) : null}
+
               <section aria-labelledby="admin-course-settings-title" className="admin-course-common-form">
                 <div className="admin-course-common-heading"><strong id="admin-course-settings-title">과정 설정</strong><span>모든 언어 공통</span></div>
                 <div className="admin-course-common-fields">
@@ -636,7 +676,7 @@ export function AdminCoursesManager({
                   <section className="admin-course-form-section">
                     <div className="admin-course-form-section-heading"><span>1</span><div><h3>게시 설정</h3><p>현재 언어의 공개 상태와 교육 기간을 설정합니다.</p></div></div>
                     <div className="admin-editor-grid">
-                      <label>게시 상태<select onChange={(event) => updateEditor("status", event.target.value)} value={editor.status}>{courseStatuses.map((status) => <option key={status} value={status}>{statusLabels[status]}</option>)}</select></label>
+                      <label>게시 상태<select onChange={(event) => updateEditor("status", event.target.value)} value={editor.status}>{courseStatuses.map((status) => <option disabled={Boolean(preparedSourceUpdatedAt) && status !== "reviewed"} key={status} value={status}>{statusLabels[status]}</option>)}</select></label>
                       <label>교육 기간<input onChange={(event) => updateEditor("duration", event.target.value)} placeholder="예: 정규 2개월" value={editor.duration} /></label>
                       {isPublishMissingIntro ? <div className="form-error full" role="status">공개로 저장하려면 목록 요약과 과정 개요를 먼저 입력해 주세요.</div> : null}
                     </div>

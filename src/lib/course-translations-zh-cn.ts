@@ -1,27 +1,3 @@
-type SourceScheduleItem = {
-  items?: string[];
-  label?: string;
-  period?: string;
-  title?: string;
-};
-
-type SourceScheduleTrack = {
-  duration?: string;
-  id: string;
-  items?: SourceScheduleItem[];
-  label?: string;
-  times?: string[];
-};
-
-type SourceContentSection = {
-  body?: string;
-  id: string;
-  images?: Array<{ alt?: string; caption?: string; url: string }>;
-  items?: string[];
-  title?: string;
-  type?: string;
-};
-
 export type CourseZhCnTranslation = {
   certificationNote: string;
   curriculumItems: string[];
@@ -35,11 +11,6 @@ export type CourseZhCnTranslation = {
   summary: string;
   title: string;
   topics: Array<{ detail: string; title: string }>;
-};
-
-export type CourseZhCnSource = {
-  content_sections?: SourceContentSection[] | null;
-  schedule_tracks?: SourceScheduleTrack[] | null;
 };
 
 function defineCourse(
@@ -236,63 +207,3 @@ export const courseZhCnTranslations: Record<string, CourseZhCnTranslation> = {
     "考试科目、日程和资格要求可能调整，报名与考试信息须以主管机构最新公告为准。"
   )
 };
-
-const scheduleLabels = ["强化班", "上午班", "晚间班", "常规班", "周末班", "实操班"];
-
-function translateScheduleMeta(value: string | undefined, fallback: string) {
-  if (!value) return fallback;
-  if (!/[가-힣]/.test(value)) return value;
-
-  const week = value.match(/(\d+)주/);
-  if (week) return `第${week[1]}周`;
-  const month = value.match(/(\d+)개월/);
-  if (month) return `第${month[1]}个月`;
-  if (value.includes("강의시간")) return "上课时间";
-  if (value.includes("정규")) return "常规课程";
-  if (value.includes("속성")) return "强化课程";
-  if (value.includes("주말")) return "周末课程";
-  return fallback;
-}
-
-export function buildZhCnStructuredContent(
-  source: CourseZhCnSource,
-  translation: CourseZhCnTranslation
-) {
-  let topicIndex = 0;
-  const nextTopic = () => translation.topics[topicIndex++ % translation.topics.length];
-
-  const scheduleTracks = (source.schedule_tracks ?? []).map((track, trackIndex) => ({
-    duration: translateScheduleMeta(track.duration, translation.duration),
-    id: track.id,
-    items: (track.items ?? []).map((item, itemIndex) => {
-      const topic = nextTopic();
-      return {
-        items: (item.items?.length ? item.items : [""]).map((_, detailIndex) =>
-          detailIndex === 0 ? topic.detail : translation.topics[(topicIndex + detailIndex) % translation.topics.length].detail
-        ),
-        label: translateScheduleMeta(item.label, scheduleLabels[itemIndex % scheduleLabels.length]),
-        period: translateScheduleMeta(item.period, `第${itemIndex + 1}阶段`),
-        title: translateScheduleMeta(item.title, topic.title)
-      };
-    }),
-    label: translateScheduleMeta(track.label, `课程安排 ${trackIndex + 1}`),
-    times: (track.times ?? []).map((_, index) => `上课时段 ${index + 1}`)
-  }));
-
-  const contentSections = (source.content_sections ?? []).map((section, sectionIndex) => ({
-    body: section.body ? `${translation.overview}` : "",
-    id: section.id,
-    images: (section.images ?? []).map((image) => ({
-      alt: `${translation.title}课程图片`,
-      caption: image.caption ? translation.title : "",
-      url: image.url
-    })),
-    items: (section.items ?? []).map((_, itemIndex) =>
-      translation.topics[(sectionIndex + itemIndex) % translation.topics.length].title
-    ),
-    title: translation.sectionTitles[sectionIndex % translation.sectionTitles.length],
-    type: section.type ?? "practice"
-  }));
-
-  return { contentSections, scheduleTracks };
-}

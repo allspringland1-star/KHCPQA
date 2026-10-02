@@ -389,14 +389,10 @@ test("curated Simplified Chinese course translations cover all 18 courses", asyn
   }
 });
 
-test("Simplified Chinese importer is dry-run by default and never overwrites existing records", async () => {
+test("retired Simplified Chinese importer cannot write or impersonate a reviewer", async () => {
   const source = await readFile("scripts/import-course-zh-cn.ts", "utf8");
 
-  assert.match(source, /process\.argv\.includes\("--apply"\)/);
-  assert.match(source, /locale",\s*"zh-CN"/);
-  assert.match(source, /existingLocalization/);
-  assert.match(source, /if \(existingLocalization\)/);
-  assert.match(source, /status:\s*"translated"/);
-  assert.match(source, /translated_from_updated_at/);
-  assert.doesNotMatch(source, /\.upsert\(/);
+  assert.match(source, /throw new Error/);
+  assert.match(source, /importer is retired/);
+  assert.doesNotMatch(source, /createClient|\.from\(|\.upsert\(|reviewed_by/);
 });

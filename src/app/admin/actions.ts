@@ -36,6 +36,7 @@ import { hasSupabaseBrowserEnv } from "@/lib/supabase/env";
 import { createClient as createServerSupabaseClient } from "@/lib/supabase/server";
 import { canPublishTranslation, getTranslationFreshness } from "@/lib/translation-model";
 import { FOOTER_SETTINGS_SLUG, normalizeFooterSettings, serializeFooterSettings, type FooterSettings } from "@/lib/footer-settings";
+import { buildPreparedCourseTranslation, validatePreparedCourseSave } from "@/lib/course-translation-repairs";
 
 const roleOptions = [
   "user",
@@ -1449,7 +1450,24 @@ export async function saveAdminCourse(input: {
   return { ok: true, message: "교육과정이 생성되었습니다.", courseId: data.id, slug: data.slug };
 }
 
+export async function loadPreparedCourseTranslation(input: { courseId: string; locale: string }) {
+  if (!hasSupabaseBrowserEnv()) return { ok: false as const, message: missingSupabaseMessage };
+  const actor = await getActiveAdminRole();
+  if (!actor.userId || !canManageCourses(actor.role, actor.status)) {
+    return { ok: false as const, message: "과정 관리자 로그인이 필요합니다." };
+  }
+  const { data: course, error: courseError } = await actor.supabase.from("courses").select("slug").eq("id", input.courseId).maybeSingle();
+  const { data: source, error: sourceError } = await actor.supabase.from("course_localizations").select("*").eq("course_id", input.courseId).eq("locale", "ko").maybeSingle();
+  if (courseError || sourceError || !course || !source) return { ok: false as const, message: "한국어 원문을 불러올 수 없습니다." };
+  try {
+    return { ok: true as const, draft: buildPreparedCourseTranslation(course.slug, input.locale, source) };
+  } catch {
+    return { ok: false as const, message: "준비된 번역이 없거나 한국어 원문이 변경되었습니다. 최신 원문에 맞춘 번역이 필요합니다." };
+  }
+}
+
 export async function saveAdminCourseLocalization(input: {
+  expectedSourceUpdatedAt?: string;
   certificationNote: string;
   contentSections: CourseContentSection[];
   courseId: string;
@@ -1502,6 +1520,9 @@ export async function saveAdminCourseLocalization(input: {
         .eq("locale", "ko")
         .maybeSingle()).data;
   const sourceUpdatedAt = sourceRow?.updated_at ?? null;
+
+  const preparedSaveError = validatePreparedCourseSave(input.expectedSourceUpdatedAt, sourceUpdatedAt, payload.status);
+  if (preparedSaveError) return { ok: false, message: preparedSaveError };
 
   if (payload.status === "published") {
     if (actor.role !== "super_admin") {
