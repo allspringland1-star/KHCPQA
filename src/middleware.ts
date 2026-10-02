@@ -34,7 +34,6 @@ function isProtectedPath(pathname: string) {
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
-  const requiresTranslationNoIndex = pathname === "/zh-CN" || pathname.startsWith("/zh-CN/");
 
   if (pathname === "/") {
     const locale = getPreferredLocale(
@@ -54,9 +53,6 @@ export async function middleware(request: NextRequest) {
 
   if (!isProtectedPath(pathname)) {
     const publicResponse = NextResponse.next();
-    if (requiresTranslationNoIndex) {
-      publicResponse.headers.set("X-Robots-Tag", "noindex, nofollow");
-    }
     return publicResponse;
   }
 
@@ -118,9 +114,6 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  if (requiresTranslationNoIndex) {
-    response.headers.set("X-Robots-Tag", "noindex, nofollow");
-  }
   return response;
 }
 

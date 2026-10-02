@@ -231,7 +231,7 @@ export function LoginForm({ locale }: { locale: Locale }) {
         </div>
       ) : null}
       {errors.form ? <span className="form-error">{errors.form}</span> : null}
-      {isSubmitting ? <LoginActionOverlay mode={mode} /> : null}
+      {isSubmitting ? <LoginActionOverlay locale={locale} mode={mode} /> : null}
       <button className="primary-button" disabled={isSubmitting || (mode === "reset" && isSubmitted)} type="submit">
         {isSubmitting ? "..." : mode === "login" ? t.login.submitCta : t.login.resetCta}
       </button>
@@ -247,10 +247,14 @@ export function LoginForm({ locale }: { locale: Locale }) {
   );
 }
 
-function LoginActionOverlay({ mode }: { mode: "login" | "reset" }) {
-  const title = mode === "login" ? "로그인 중입니다" : "안내 메일을 보내는 중입니다";
+function LoginActionOverlay({ locale, mode }: { locale: Locale; mode: "login" | "reset" }) {
+  const title = locale === "zh-CN"
+    ? mode === "login" ? "正在登录" : "正在发送邮件"
+    : mode === "login" ? "로그인 중입니다" : "안내 메일을 보내는 중입니다";
   const description =
-    mode === "login"
+    locale === "zh-CN"
+      ? mode === "login" ? "正在核对账户信息并准备跳转。" : "正在向您的邮箱发送密码重置说明。"
+      : mode === "login"
       ? "계정 정보를 확인하고 이동할 화면을 준비하고 있습니다."
       : "입력하신 이메일로 비밀번호 재설정 안내를 보내고 있습니다.";
 

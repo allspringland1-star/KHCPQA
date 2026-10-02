@@ -8,7 +8,7 @@ function getSafeRedirectPath(value: string | null) {
   }
 
   const isInternal = value.startsWith("/") && !value.startsWith("//") && !value.includes("://");
-  const isAllowedPath = /^\/(?:ko|en|es)\/account(?:\/|$)/.test(value) || /^\/admin(?:\/|$)/.test(value);
+  const isAllowedPath = /^\/(?:ko|en|es|zh-CN)\/account(?:\/|$)/.test(value) || /^\/admin(?:\/|$)/.test(value);
 
   return isInternal && isAllowedPath ? value : "/ko/account";
 }

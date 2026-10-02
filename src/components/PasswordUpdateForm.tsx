@@ -14,6 +14,7 @@ type FormState = {
 };
 
 const labels = {
+  "zh-CN": { title: "设置新密码", lead: "请输入邮箱验证后使用的新密码。", password: "新密码", confirmPassword: "确认新密码", submit: "保存密码", successTitle: "密码已更新", successMessage: "现在可使用新密码登录。", accountCta: "前往我的账户" },
   ko: {
     title: "새 비밀번호 설정",
     lead: "이메일 인증 후 사용할 새 비밀번호를 입력해 주세요.",

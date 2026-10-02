@@ -32,7 +32,7 @@ export function CertificationLookupForm({
   return (
     <section className="certificate-lookup">
       <div className="section-heading">
-        <span className="eyebrow">Verification</span>
+        <span className="eyebrow">{locale === "zh-CN" ? "证书验证" : "Verification"}</span>
         <h2>{t.account.certifications.lookupTitle}</h2>
         <p>{t.account.certifications.lookupLead}</p>
       </div>

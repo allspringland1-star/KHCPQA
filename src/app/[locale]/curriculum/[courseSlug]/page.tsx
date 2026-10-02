@@ -178,7 +178,7 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ l
   const copy = labels[locale];
   const imageUrl = course.imageUrl || "/assets/premium-course-facial-contouring.png";
   const updatedAt = course.updatedAt
-    ? new Intl.DateTimeFormat(locale === "ko" ? "ko-KR" : locale === "es" ? "es-ES" : "en-US", { dateStyle: "medium" }).format(new Date(course.updatedAt))
+    ? new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(new Date(course.updatedAt))
     : "";
 
   return (

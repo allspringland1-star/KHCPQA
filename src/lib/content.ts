@@ -19,11 +19,13 @@ import {
   localeLabels,
   type Locale as AppLocale
 } from "@/i18n/config";
+import { chineseCopy } from "./content-zh-cn";
+import { courseZhCnTranslations } from "./course-translations-zh-cn";
 
-export const locales = ["ko", "en", "es"] as const;
+export const locales = ["ko", "en", "es", "zh-CN"] as const;
 export type Locale = (typeof locales)[number];
 export { defaultLocale, isLocale, localeLabels };
-type LegacyContentLocale = Locale;
+type LegacyContentLocale = Exclude<Locale, "zh-CN">;
 
 export const translationStatuses = ["ready", "reviewing", "draft"] as const;
 export type TranslationStatus = (typeof translationStatuses)[number];
@@ -55,7 +57,7 @@ export const pageTranslationStatus: Record<AppLocale, TranslationStatus> = {
   ko: "ready",
   en: "reviewing",
   es: "reviewing",
-  "zh-CN": "draft"
+  "zh-CN": "reviewing"
 };
 
 export function getTranslationStatus(locale: string): TranslationStatus {
@@ -104,7 +106,7 @@ type AboutSubnavItem = {
   disabled?: boolean;
 };
 
-type Copy = {
+export type Copy = {
   brand: string;
   brandFull: string;
   nav: Record<(typeof navItems)[number]["key"] | "login", string>;
@@ -506,6 +508,7 @@ type Copy = {
 export type CourseCategory = "all" | "certification" | "professional" | "practical";
 
 export const copy = {
+  "zh-CN": chineseCopy,
   ko: {
     brand: "KAHC",
     brandFull: "The Korea Association for Health & Beauty Certification",
@@ -2241,7 +2244,7 @@ export const copy = {
       consultCta: "Solicitar asesoría"
     }
   }
-} satisfies Record<LegacyContentLocale, Copy>;
+} satisfies Record<Locale, Copy>;
 
 const courseTitleTranslations = [
   { ko: "취업전문과정", en: "Employment Preparation Track", es: "Ruta de Preparación Laboral", sourcePath: "curriculum05.asp", categoryKey: "professional" },
@@ -3757,6 +3760,25 @@ function getActiveLocale(locale: string): LegacyContentLocale {
 }
 
 export function getCourses(locale: string): Course[] {
+  if (locale === "zh-CN") {
+    return getCourses("ko").flatMap((course) => {
+      const text = courseZhCnTranslations[course.slug];
+      if (!text) return [];
+      return [{
+        ...course,
+        title: text.title,
+        category: chineseCopy.curriculumCatalog.categories[course.categoryKey],
+        summary: text.summary,
+        overview: text.overview,
+        audience: text.recommendedFor.join("、"),
+        curriculum: text.curriculumItems,
+        certificationNote: text.certificationNote,
+        durationHighlights: [text.duration],
+        detailSections: undefined,
+        keyMetrics: undefined
+      }];
+    });
+  }
   const activeLocale = getActiveLocale(locale);
 
   return courseTitleTranslations.map((titles) => {
@@ -3900,6 +3922,23 @@ const activityGroupsByLocale: Record<LegacyContentLocale, Array<{
 };
 
 export function getActivityGroups(locale: string) {
+  if (locale === "zh-CN") {
+    const labels: Record<string, [string, string, string]> = {
+      notice: ["通知公告", "协会通知", "课程开班、考试安排与协会公告。"],
+      pass: ["考试合格记录", "学习成果", "学员资格考试合格与结业记录。"],
+      photo: ["活动相册", "现场照片", "课程、培训与活动的现场记录。"],
+      awards: ["获奖记录", "荣誉与成果", "协会与学员的获奖和荣誉记录。"],
+      competition: ["国际美容赛事", "国际交流", "国际美容大赛参与和交流活动。"],
+      "corporate-events": ["企业活动", "企业合作", "与企业和机构共同举办的活动。"],
+      media: ["媒体报道", "新闻与广播", "协会与教育活动相关媒体报道。"],
+      volunteer: ["志愿服务", "社会贡献", "社区志愿服务与公益活动。"],
+      reviews: ["学员评价", "学习体验", "学员的学习体验、反馈与职业发展故事。"]
+    };
+    return activityGroupsByLocale.en.map((group) => {
+      const [title, source, summary] = labels[group.key];
+      return { ...group, title, source, summary };
+    });
+  }
   return activityGroupsByLocale[getActiveLocale(locale)];
 }
 
@@ -3912,6 +3951,7 @@ export function getActivityGroupByKey(locale: string, activityKey: string) {
 }
 
 export function getActivityPosts(locale: string, activityKey: string) {
+  if (locale === "zh-CN") return [];
   const activeLocale = getActiveLocale(locale);
   const activity = getActivityGroupByKey(activeLocale, activityKey);
 
@@ -3996,6 +4036,10 @@ const statsByLocale: Record<LegacyContentLocale, Array<{ label: string; value: s
 };
 
 export function getStats(locale: string) {
+  if (locale === "zh-CN") {
+    const labels = ["运营经验", "交流国家", "资格专业人士", "合作机构"];
+    return statsByLocale.en.map((item, index) => ({ ...item, label: labels[index] }));
+  }
   return statsByLocale[getActiveLocale(locale)];
 }
 
@@ -4007,7 +4051,7 @@ export const adminModules = [
   { title: "사용자 관리자", icon: Users, status: "Auth", count: "4", description: "회원 계정, 역할, 계정 상태 관리" },
   { title: "자격 데이터", icon: ShieldCheck, status: "Secure", count: "2", description: "자격번호, 발급일, 상태, 검증 코드 관리" },
   { title: "팝업/배너", icon: Sparkles, status: "Content", count: "3", description: "메인 팝업, 상단 배너, 캠페인 노출 기간 관리" },
-  { title: "번역 상태", icon: Globe2, status: "i18n", count: "3", description: "한국어, 영어, 스페인어 콘텐츠 검수 상태 관리" }
+  { title: "번역 상태", icon: Globe2, status: "i18n", count: "4", description: "한국어, 영어, 스페인어, 중국어 콘텐츠 검수 상태 관리" }
 ];
 
 export const adminContentRows = [
@@ -4131,5 +4175,5 @@ export function getLocations(locale: string) {
 }
 
 export function getCopy(locale: string) {
-  return copy[getActiveLocale(locale)];
+  return copy[isLocale(locale) ? locale : defaultLocale];
 }

@@ -45,7 +45,7 @@ const adminForms: Record<AdminFormType, {
     icon: BookOpenCheck,
     fields: [
       { label: "과정", name: "courseSlug", type: "select", options: [], required: true },
-      { label: "언어", name: "locale", type: "select", options: ["ko", "en", "es"], required: true },
+      { label: "언어", name: "locale", type: "select", options: ["ko", "en", "es", "zh-CN"], required: true },
       {
         label: "관리 영역",
         name: "courseSection",
@@ -67,7 +67,7 @@ const adminForms: Record<AdminFormType, {
     icon: FilePenLine,
     fields: [
       { label: "콘텐츠 유형", name: "contentType", type: "select", options: ["Page", "Activity", "Review"], required: true },
-      { label: "언어", name: "locale", type: "select", options: ["ko", "en", "es"], required: true },
+      { label: "언어", name: "locale", type: "select", options: ["ko", "en", "es", "zh-CN"], required: true },
       { label: "Slug", name: "slug", placeholder: "about 또는 activity-notice", required: true },
       { label: "제목", name: "title", placeholder: "콘텐츠 제목", required: true },
       { label: "게시 상태", name: "status", type: "select", options: ["draft", "translated", "reviewed", "published", "archived"], required: true },

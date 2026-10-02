@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import {
   buildLanguageAlternates,
   localeOpenGraph,
+  locales,
   type Locale
 } from "@/i18n/config";
 import { getCopy } from "@/lib/content";
@@ -28,14 +29,11 @@ export function buildLocaleMetadata({
   noIndex?: boolean;
 }): Metadata {
   const t = getCopy(locale);
-  const isPendingLocale = (locale as string) === "zh-CN";
-  const pageTitle = isPendingLocale ? "翻译内容准备中 | KAHC" : title ?? t.seo.title;
-  const pageDescription = isPendingLocale
-    ? "KAHC 简体中文内容正在进行人工审核，审核通过后将分阶段发布。"
-    : description ?? t.seo.description;
+  const pageTitle = title ?? t.seo.title;
+  const pageDescription = description ?? t.seo.description;
   const canonicalPath = getLocalizedPath(locale, path);
   const publishedLocales: readonly Locale[] =
-    availableLocales ?? (isPendingLocale ? ["ko"] : ["ko", "en", "es"]);
+    availableLocales ?? locales;
 
   return {
     metadataBase: new URL(siteUrl),
@@ -53,6 +51,6 @@ export function buildLocaleMetadata({
       type: "website",
       url: `${siteUrl}${canonicalPath}`
     },
-    robots: noIndex || isPendingLocale ? { index: false, follow: false } : undefined
+    robots: noIndex ? { index: false, follow: false } : undefined
   };
 }

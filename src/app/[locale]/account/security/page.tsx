@@ -5,6 +5,7 @@ import type { Locale } from "@/lib/content";
 import { buildLocaleMetadata } from "@/lib/seo";
 
 const securityCopy = {
+  "zh-CN": { eyebrow: "账户安全", title: "重置密码", lead: "完成邮箱验证后，可在此设置新密码。" },
   ko: {
     eyebrow: "계정 보안",
     title: "비밀번호 재설정",

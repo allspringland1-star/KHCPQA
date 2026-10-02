@@ -27,6 +27,7 @@ const quickNavIcons = [BriefcaseBusiness, Store, CalendarDays, HeartPulse, Leaf,
 const supportIcons = [Users, BadgeCheck, Lightbulb, HandHeart];
 const reasonIcons = [BookOpenCheck, Award, Handshake, Headphones];
 const emptyNoticeLabels: Record<Locale, string> = {
+  "zh-CN": "暂无已发布的通知。",
   ko: "등록된 공지사항이 없습니다.",
   en: "No notices have been published.",
   es: "No hay avisos publicados."
@@ -66,7 +67,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: L
 
   return (
     <>
-      <HomePopup banner={homePopup} />
+      <HomePopup banner={homePopup} locale={locale} />
       <section className="home-stage">
         <div className="hero-card">
           <div className="hero-copy">

@@ -5,6 +5,7 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import type { PublishedBanner } from "@/lib/public-content";
+import type { Locale } from "@/i18n/config";
 
 const dismissalPrefix = "khcpqa.homePopup.dismissedUntil";
 
@@ -40,7 +41,7 @@ function dismissForToday(storageKey: string) {
   }
 }
 
-export function HomePopup({ banner }: { banner?: PublishedBanner }) {
+export function HomePopup({ banner, locale = "ko" }: { banner?: PublishedBanner; locale?: Locale }) {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -77,7 +78,7 @@ export function HomePopup({ banner }: { banner?: PublishedBanner }) {
   return (
     <div className="home-popup-backdrop" role="presentation">
       <aside aria-label={banner.title} className="home-popup" role="dialog">
-        <button aria-label="팝업 닫기" className="home-popup-close" onClick={closePopup} type="button">
+        <button aria-label={locale === "zh-CN" ? "关闭弹窗" : "팝업 닫기"} className="home-popup-close" onClick={closePopup} type="button">
           <X size={18} />
         </button>
         {banner.targetUrl ? (
@@ -89,10 +90,10 @@ export function HomePopup({ banner }: { banner?: PublishedBanner }) {
         )}
         <div className="home-popup-actions">
           <button className="home-popup-dismiss-today" onClick={closeForToday} type="button">
-            오늘 하루 보지 않기
+            {locale === "zh-CN" ? "今天不再显示" : "오늘 하루 보지 않기"}
           </button>
           <button className="home-popup-dismiss-now" onClick={closePopup} type="button">
-            닫기
+            {locale === "zh-CN" ? "关闭" : "닫기"}
           </button>
         </div>
       </aside>

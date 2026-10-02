@@ -127,11 +127,12 @@ function buildProfileData(locale: Locale, profile: ProfileRow | null, email?: st
 }
 
 function mapCertificate(locale: Locale, row: CertificateRow): AccountCertificate {
+  const chineseStatusLabels: Record<string, string> = { expired: "已过期", issued: "已颁发", revoked: "已撤销" };
   return {
     title: row.course_title,
     number: row.certificate_number,
     issuedAt: formatDate(locale, row.issued_at),
-    status: certificateStatusLabels[row.status] ?? row.status,
+    status: (locale === "zh-CN" ? chineseStatusLabels : certificateStatusLabels)[row.status] ?? row.status,
     verificationCode: row.verification_code
   };
 }

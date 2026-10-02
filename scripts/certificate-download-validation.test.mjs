@@ -122,5 +122,5 @@ test("account certificate statuses are localized for member-facing pages", async
 
   assert.match(accountDataSource, /certificateStatusLabels/);
   assert.match(accountDataSource, /issued: "발급됨"/);
-  assert.match(accountDataSource, /status: certificateStatusLabels\[row\.status\] \?\? row\.status/);
+  assert.match(accountDataSource, /status: \(locale === "zh-CN" \? chineseStatusLabels : certificateStatusLabels\)\[row\.status\] \?\? row\.status/);
 });

@@ -6,7 +6,7 @@ import { formatInquiryReceipt } from "@/lib/receipts";
 import { hasSupabaseBrowserEnv } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 
-const locales = ["ko", "en", "es"] as const;
+const locales = ["ko", "en", "es", "zh-CN"] as const;
 const inquiryTypes = ["general", "course", "certification", "partnership"] as const;
 
 type Locale = (typeof locales)[number];
@@ -59,7 +59,7 @@ export async function submitPartnerInquiry(input: PartnerInquiryInput): Promise<
   ) {
     return {
       ok: false,
-      message: "문의 필수 항목을 확인해 주세요.",
+      message: trimmed.locale === "zh-CN" ? "请检查咨询的必填项。" : "문의 필수 항목을 확인해 주세요.",
       receipt: ""
     };
   }
@@ -70,7 +70,7 @@ export async function submitPartnerInquiry(input: PartnerInquiryInput): Promise<
   if (!hasSupabaseBrowserEnv()) {
     return {
       ok: false,
-      message: "문의 저장 환경변수가 설정되지 않았습니다.",
+      message: trimmed.locale === "zh-CN" ? "咨询服务尚未连接，请联系管理员。" : "문의 저장 환경변수가 설정되지 않았습니다.",
       receipt: ""
     };
   }
@@ -108,7 +108,7 @@ export async function submitPartnerInquiry(input: PartnerInquiryInput): Promise<
 
   return {
     ok: true,
-    message: "문의가 접수되었습니다.",
+    message: trimmed.locale === "zh-CN" ? "咨询已受理。" : "문의가 접수되었습니다.",
     receipt
   };
 }

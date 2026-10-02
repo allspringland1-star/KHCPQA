@@ -1,5 +1,5 @@
 import type { Locale } from "@/i18n/config";
-import { getCourses, type Course } from "@/lib/content";
+import { getCopy, getCourses, type Course } from "@/lib/content";
 import {
   normalizeCourseSections,
   normalizeScheduleTracks,
@@ -85,6 +85,7 @@ function getFallbackCourses(locale: string) {
 }
 
 function getCategoryLabel(locale: string, categoryKey: CourseCategoryKey) {
+  if (locale === "zh-CN") return getCopy(locale).curriculumCatalog.categories[categoryKey];
   return getCourses(locale).find((course) => course.categoryKey === categoryKey)?.category ?? categoryKey;
 }
 

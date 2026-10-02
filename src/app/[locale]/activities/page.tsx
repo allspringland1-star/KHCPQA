@@ -14,6 +14,7 @@ const activitiesOverviewCopy: Record<Locale, {
   gridLead: string;
   allLabel: string;
 }> = {
+  "zh-CN": { categoryCtas: {}, categoriesLabel: "社区分类", exploreLabel: "社区菜单", gridTitle: "社区内容", gridLead: "按分类查看最新公告与活动记录。", allLabel: "全部社区" },
   ko: {
     categoryCtas: {
       awards: "수상 보기",

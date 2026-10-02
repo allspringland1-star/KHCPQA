@@ -21,6 +21,7 @@ const postDetailCopy: Record<Locale, {
   listLabel: string;
   viewsLabel: string;
 }> = {
+  "zh-CN": { authorLabel: "作者", attachmentLabel: "PDF 附件", dateLabel: "日期", listLabel: "返回列表", viewsLabel: "浏览次数" },
   ko: {
     authorLabel: "작성자",
     attachmentLabel: "PDF 첨부파일",
@@ -153,7 +154,7 @@ export default async function ActivityPostDetailPage({
               {bodyLines.length > 0 ? (
                 bodyLines.map((line) => <p key={line}>{line}</p>)
               ) : (
-                <p>등록된 상세 본문이 없습니다.</p>
+                <p>{locale === "zh-CN" ? "暂无详细正文。" : "등록된 상세 본문이 없습니다."}</p>
               )}
             </div>
             {post.sourceUrl ? (

@@ -3,7 +3,7 @@ import { classifyLocalizedPath } from "@/lib/public-locales";
 import { hasSupabaseBrowserEnv } from "@/lib/supabase/env";
 import { createPublicClient } from "@/lib/supabase/public";
 
-const legacyPublishedLocales: Locale[] = ["ko", "en", "es"];
+const staticPageLocales: Locale[] = [...locales];
 
 function normalizeLocales(values: unknown[]) {
   return locales.filter((locale) => values.includes(locale));
@@ -13,7 +13,7 @@ export async function getPublishedLocalesForPath(pathname: string): Promise<Loca
   const lookup = classifyLocalizedPath(pathname);
 
   if (!hasSupabaseBrowserEnv()) {
-    return legacyPublishedLocales;
+    return lookup.kind === "page" ? staticPageLocales : ["ko", "en", "es"];
   }
 
   const supabase = createPublicClient();
@@ -45,5 +45,5 @@ export async function getPublishedLocalesForPath(pathname: string): Promise<Loca
     .eq("slug", lookup.slug)
     .eq("status", "published");
   const managedLocales = normalizeLocales((data ?? []).map((row) => row.locale));
-  return normalizeLocales([...legacyPublishedLocales, ...managedLocales]);
+  return normalizeLocales([...staticPageLocales, ...managedLocales]);
 }

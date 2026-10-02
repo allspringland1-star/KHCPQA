@@ -13,10 +13,10 @@ function getShortReceipt(receipt: string) {
 
 function getInquiryTypeLabel(type: string, locale: Locale) {
   const labels: Record<string, Record<Locale, string>> = {
-    certification: { en: "Certification inquiry", es: "Consulta de certificacion", ko: "자격 문의" },
-    course: { en: "Course inquiry", es: "Consulta de curso", ko: "교육과정 문의" },
-    general: { en: "General inquiry", es: "Consulta general", ko: "일반 문의" },
-    partnership: { en: "Partnership inquiry", es: "Consulta de alianza", ko: "파트너십 문의" }
+    certification: { "zh-CN": "资格咨询", en: "Certification inquiry", es: "Consulta de certificacion", ko: "자격 문의" },
+    course: { "zh-CN": "课程咨询", en: "Course inquiry", es: "Consulta de curso", ko: "교육과정 문의" },
+    general: { "zh-CN": "一般咨询", en: "General inquiry", es: "Consulta general", ko: "일반 문의" },
+    partnership: { "zh-CN": "合作咨询", en: "Partnership inquiry", es: "Consulta de alianza", ko: "파트너십 문의" }
   };
 
   return labels[type]?.[locale] ?? type;
@@ -24,10 +24,10 @@ function getInquiryTypeLabel(type: string, locale: Locale) {
 
 function getInquiryStatusLabel(status: string, locale: Locale) {
   const labels: Record<string, Record<Locale, string>> = {
-    answered: { en: "Answered", es: "Respondida", ko: "답변 완료" },
-    closed: { en: "Closed", es: "Cerrada", ko: "종료" },
-    in_review: { en: "In review", es: "En revision", ko: "검토 중" },
-    new: { en: "New", es: "Nueva", ko: "신규" }
+    answered: { "zh-CN": "已回复", en: "Answered", es: "Respondida", ko: "답변 완료" },
+    closed: { "zh-CN": "已结束", en: "Closed", es: "Cerrada", ko: "종료" },
+    in_review: { "zh-CN": "审核中", en: "In review", es: "En revision", ko: "검토 중" },
+    new: { "zh-CN": "新咨询", en: "New", es: "Nueva", ko: "신규" }
   };
 
   return labels[status]?.[locale] ?? status;
@@ -35,6 +35,7 @@ function getInquiryStatusLabel(status: string, locale: Locale) {
 
 function getManagerNoteLabel(locale: Locale) {
   const labels: Record<Locale, string> = {
+    "zh-CN": "回复内容",
     en: "Reply",
     es: "Respuesta",
     ko: "답변 내용"

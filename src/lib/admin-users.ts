@@ -11,7 +11,7 @@ export const adminUserRoles = [
 ] as const;
 
 export const adminUserStatuses = ["active", "suspended", "deleted"] as const;
-export const adminUserLocales = ["ko", "en", "es"] as const;
+export const adminUserLocales = ["ko", "en", "es", "zh-CN"] as const;
 
 export type AdminUserRole = (typeof adminUserRoles)[number];
 export type AdminUserStatus = (typeof adminUserStatuses)[number];

@@ -8,6 +8,7 @@ import type { AccountCertificate } from "@/lib/account-data";
 import type { CertificateTemplate, CertificateTemplateLayoutFieldKey } from "@/lib/admin-certifications";
 
 type CertificateDownloadActionsProps = {
+  locale?: string;
   certificate: AccountCertificate;
   certificateTemplate?: CertificateTemplate | null;
   holderName?: string;
@@ -512,6 +513,7 @@ export function CertificateDownloadActions({
   certificate,
   certificateTemplate,
   holderName,
+  locale = "ko",
   variant = "full"
 }: CertificateDownloadActionsProps) {
   const [message, setMessage] = useState("");
@@ -521,15 +523,15 @@ export function CertificateDownloadActions({
     try {
       await downloadCertificatePng(certificate, holderName, certificateTemplate);
     } catch {
-      setMessage("이미지 파일을 준비하지 못했습니다. 다시 시도해 주세요.");
+      setMessage(locale === "zh-CN" ? "无法生成图片，请重试。" : "이미지 파일을 준비하지 못했습니다. 다시 시도해 주세요.");
     }
   }
 
   return (
     <span className={`certificate-download-actions is-${variant}`}>
-      <button aria-label={`${certificate.title} 자격증 이미지 다운로드`} onClick={handlePngDownload} type="button">
+      <button aria-label={`${certificate.title} ${locale === "zh-CN" ? "下载证书图片" : "자격증 이미지 다운로드"}`} onClick={handlePngDownload} type="button">
         <FileImage size={16} />
-        <span>이미지 다운로드</span>
+        <span>{locale === "zh-CN" ? "下载图片" : "이미지 다운로드"}</span>
       </button>
       {message ? <span className="certificate-download-message" role="status">{message}</span> : null}
     </span>

@@ -48,6 +48,7 @@ export default async function AccountPage({ params }: { params: Promise<{ locale
                 <span>{certificate.number} · {certificate.issuedAt}</span>
                 <em>{certificate.status}</em>
                 <CertificateDownloadActions
+                  locale={locale}
                   certificate={certificate}
                   certificateTemplate={accountData.certificateTemplate}
                   holderName={accountData.profileForm.name}

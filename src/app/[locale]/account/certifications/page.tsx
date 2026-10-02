@@ -59,6 +59,7 @@ export default async function AccountCertificationsPage({ params }: { params: Pr
                     </div>
                   </dl>
                   <CertificateDownloadActions
+                    locale={locale}
                     certificate={certificate}
                     certificateTemplate={accountData.certificateTemplate}
                     holderName={accountData.profileForm.name}

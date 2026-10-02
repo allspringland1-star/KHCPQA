@@ -1,4 +1,4 @@
-export const adminCourseLocales = ["ko", "en", "es"] as const;
+export const adminCourseLocales = ["ko", "en", "es", "zh-CN"] as const;
 export const adminCourseStatuses = ["draft", "translated", "reviewed", "published", "archived"] as const;
 export const adminCourseSections = [
   "main",

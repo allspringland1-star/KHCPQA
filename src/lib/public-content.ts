@@ -78,7 +78,7 @@ function formatDate(value?: string) {
 }
 
 function getDefaultAuthor(locale: Locale) {
-  return locale === "ko" ? "관리자" : "Admin";
+  return locale === "ko" ? "관리자" : locale === "zh-CN" ? "管理员" : "Admin";
 }
 
 function normalizePagination(page = 1, pageSize = 10) {

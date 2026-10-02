@@ -5,6 +5,7 @@ import { PageIntro } from "@/components/SiteShell";
 import { getCopy, type Locale } from "@/lib/content";
 import { getPublishedContentIntro } from "@/lib/public-content";
 import { buildLocaleMetadata } from "@/lib/seo";
+import { localizeChineseLocation } from "@/lib/contact-zh-cn";
 
 type TransitStop = {
   stop: string;
@@ -116,6 +117,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: L
 
 export default async function ContactPage({ params }: { params: Promise<{ locale: Locale }> }) {
   const { locale } = await params;
+  const locations = locale === "zh-CN" ? academyLocations.map(localizeChineseLocation) : academyLocations;
   const t = getCopy(locale);
   const intro = await getPublishedContentIntro({
     contentType: "Page",
@@ -138,7 +140,7 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
       <AboutSubnav locale={locale} activeKey="location" />
       <section className="content-section location-section">
         <nav className="location-tabs" aria-label={t.nav.contact}>
-          {academyLocations.map((location) => (
+          {locations.map((location) => (
             <a href={`#${location.id}`} key={location.id}>
               {location.name}
             </a>
@@ -146,7 +148,7 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
         </nav>
 
         <div className="location-detail-list">
-          {academyLocations.map((location) => (
+          {locations.map((location) => (
             <article className="location-detail" id={location.id} key={location.id}>
               <div className="location-detail-head">
                 <div>
@@ -158,7 +160,7 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
                     <Phone size={18} />
                     {t.contact.callCta}
                   </a>
-                  <a href={`https://map.kakao.com/link/search/${encodeURIComponent(location.roadAddress)}`} target="_blank" rel="noreferrer">
+                  <a href={`https://map.kakao.com/link/search/${encodeURIComponent(academyLocations.find((item) => item.id === location.id)?.roadAddress ?? location.roadAddress)}`} target="_blank" rel="noreferrer">
                     <ExternalLink size={18} />
                     {t.contact.mapCta}
                   </a>

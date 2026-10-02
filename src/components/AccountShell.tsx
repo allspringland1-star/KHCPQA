@@ -6,6 +6,7 @@ import { getCopy, type Locale } from "@/lib/content";
 const accountIcons = [LayoutDashboard, UserRound, BadgeCheck, ClipboardList];
 
 const logoutCopy: Record<Locale, { description: string; label: string }> = {
+  "zh-CN": { description: "结束登录会话", label: "退出登录" },
   en: { description: "End session", label: "Logout" },
   es: { description: "Cerrar sesion", label: "Salir" },
   ko: { description: "세션 종료", label: "로그아웃" }

@@ -36,6 +36,7 @@ const activityDirectoryCopy: Record<Locale, {
   viewsLabel: string;
   writerLabel: string;
 }> = {
+  "zh-CN": { allLabel: "全部社区", categoriesLabel: "社区分类", exploreLabel: "社区菜单", emptyPosts: "暂无已发布的文章。", dateLabel: "日期", numberLabel: "编号", nextLabel: "下一页", paginationLabel: "文章分页", previousLabel: "上一页", titleLabel: "标题", viewsLabel: "浏览次数", writerLabel: "作者" },
   ko: {
     allLabel: "전체 커뮤니티",
     categoriesLabel: "커뮤니티 카테고리",

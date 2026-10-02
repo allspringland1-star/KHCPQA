@@ -4,7 +4,7 @@ import { getActivityKeys } from "@/lib/content";
 import { getPublishedCourses } from "@/lib/course-repository";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://khcpqa.vercel.app";
-const legacyPublishedLocales: Locale[] = ["ko", "en", "es"];
+const staticPageLocales: Locale[] = [...locales];
 
 const publicPaths = [
   "",
@@ -15,19 +15,20 @@ const publicPaths = [
   "about/organization",
   "activities",
   "curriculum",
+  "contact",
   "login",
   "partner-inquiry",
   "signup"
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const staticRoutes = legacyPublishedLocales.flatMap((locale) =>
+  const staticRoutes = staticPageLocales.flatMap((locale) =>
     publicPaths.map((path) => ({
       url: path.length > 0 ? `${siteUrl}/${locale}/${path}` : `${siteUrl}/${locale}`,
       lastModified: new Date(),
       changeFrequency: "weekly" as const,
       priority: path.length > 0 ? 0.7 : 1,
-      alternates: { languages: buildLanguageAlternates(path, legacyPublishedLocales, siteUrl) }
+      alternates: { languages: buildLanguageAlternates(path, staticPageLocales, siteUrl) }
     }))
   );
 
@@ -54,7 +55,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }))
   );
 
-  const activityRoutes = legacyPublishedLocales.flatMap((locale) =>
+  const activityRoutes = staticPageLocales.flatMap((locale) =>
     getActivityKeys().map((activityKey) => ({
       url: `${siteUrl}/${locale}/activities/${activityKey}`,
       lastModified: new Date(),
