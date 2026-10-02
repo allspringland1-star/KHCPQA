@@ -23,6 +23,29 @@ function loadTs(filename) {
   return module.exports;
 }
 
+test("all language greetings include the same leaders and distinguish the two chairmen", () => {
+  const { getCopy } = loadTs("src/lib/content.ts");
+  const source = getCopy("ko").greetingPage.greetings;
+  for (const locale of ["en", "es", "zh-CN"]) {
+    const greetings = getCopy(locale).greetingPage.greetings;
+    assert.deepEqual(greetings.map(item => item.imageUrl), source.map(item => item.imageUrl), locale);
+    assert.equal(greetings[0].paragraphs.length, source[0].paragraphs.length);
+    assert.equal(greetings[1].paragraphs.length, source[1].paragraphs.length);
+    assert.notEqual(greetings[0].role, greetings[1].role);
+  }
+});
+
+test("foreign director pages represent the same four directors as the Korean source", () => {
+  const { getCopy } = loadTs("src/lib/content.ts");
+  const source = getCopy("ko").instructorsPage.instructors;
+  for (const locale of ["en", "es", "zh-CN"]) {
+    const page = getCopy(locale).instructorsPage;
+    assert.deepEqual(page.instructors.map(item => item.imageUrl), source.map(item => item.imageUrl), locale);
+    assert.doesNotMatch(page.title, /Instructor|讲师/i);
+    assert.doesNotMatch(getCopy(locale).aboutSubnav.find(item => item.key === "instructors").title, /Instructor|讲师/i);
+  }
+});
+
 test("Chinese public pages use Chinese copy instead of the Korean fallback", () => {
   const { getCopy } = loadTs("src/lib/content.ts");
   const copy = getCopy("zh-CN");

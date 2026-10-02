@@ -17,6 +17,7 @@ import {
 } from "@/app/admin/actions";
 import { AdminStatusBadge, AdminTable, getTone } from "@/components/AdminConsole";
 import type { AdminContentRow } from "@/lib/admin-data";
+import { adminLocaleLabels as localeLabels, createTranslationDraft } from "@/lib/admin-content-locales";
 
 type ActivityOption = {
   key: string;
@@ -75,12 +76,6 @@ const blankEditor: EditorState = {
   title: ""
 };
 
-const localeLabels: Record<string, string> = {
-  en: "English",
-  es: "Español",
-  ko: "한국어"
-};
-
 const statusLabels: Record<string, string> = {
   archived: "비노출",
   draft: "임시저장",
@@ -121,7 +116,7 @@ export function AdminCommunityManager({
     () => new Map(activityOptions.map((option) => [option.key, option.title])),
     [activityOptions]
   );
-  const boards = useMemo(() => buildBoards(items, boardKeys, activityOptions, optionTitleByKey), [activityOptions, boardKeys, items, optionTitleByKey]);
+  const boards = useMemo(() => buildBoards(localeFilter ? items.filter((item) => item.locale === localeFilter) : items, boardKeys, activityOptions, optionTitleByKey), [activityOptions, boardKeys, items, optionTitleByKey, localeFilter]);
   const boardTitleByKey = useMemo(
     () => new Map(boards.map((board) => [board.key, board.title])),
     [boards]
@@ -136,16 +131,15 @@ export function AdminCommunityManager({
         board.title.toLowerCase().includes(keyword) ||
         board.summary.toLowerCase().includes(keyword) ||
         board.source.toLowerCase().includes(keyword);
-      const matchesLocale = !localeFilter || board.latest?.locale === localeFilter;
       const matchesStatus =
         !statusFilter ||
         board.latest?.status === statusFilter ||
         (statusFilter === "published" && board.published) ||
         (statusFilter === "draft" && !board.latest);
 
-      return matchesKeyword && matchesLocale && matchesStatus;
+      return matchesKeyword && matchesStatus;
     });
-  }, [boards, localeFilter, search, statusFilter]);
+  }, [boards, search, statusFilter]);
   const postItems = useMemo(
     () => items.filter((item) => !isBoardIntro(item, boardKeys)),
     [boardKeys, items]
@@ -254,7 +248,7 @@ export function AdminCommunityManager({
   }
 
   function selectBoard(board: BoardSummary) {
-    const item = board.intro ?? board.latest ?? null;
+    const item = board.intro ?? null;
     setActiveTab("boards");
     setIsEditorOpen(true);
     setIsKeyLocked(true);
@@ -266,7 +260,7 @@ export function AdminCommunityManager({
       body: item?.body ?? board.summary,
       imageUrl: item?.imageUrl ?? "",
       kind: "board",
-      locale: item?.locale ?? "ko",
+      locale: item?.locale ?? (localeFilter || "ko"),
       sourceUrl: item?.sourceUrl ?? "",
       slug: board.key,
       status: item?.status ?? "draft",
@@ -318,6 +312,19 @@ export function AdminCommunityManager({
     });
   }
 
+  function startTranslation(locale: string) {
+    const draft = createTranslationDraft(editor, locale, items);
+    if (!draft) {
+      setResult({ ok: false, message: "해당 언어 항목이 이미 있습니다. 목록에서 기존 번역을 선택해 수정해 주세요." });
+      return;
+    }
+    setSelectedItem(null);
+    setIsKeyLocked(true);
+    resetImageInput();
+    setEditor(draft);
+    setResult({ ok: true, message: "번역 초안을 복사했습니다. 내용을 번역한 뒤 검수 완료로 저장하고, 다시 열어 최고 관리자가 노출로 저장하세요." });
+  }
+
   function resetImageInput() {
     setSelectedImageName("");
     setSelectedAttachmentName("");
@@ -337,6 +344,11 @@ export function AdminCommunityManager({
 
     const formData = new FormData(event.currentTarget);
     const slug = (editor.kind === "board" ? editor.boardKey : editor.slug).trim().toLowerCase();
+
+    if (!selectedItem && items.some((item) => item.slug === slug && item.locale === editor.locale)) {
+      setResult({ ok: false, message: "해당 언어 항목이 이미 있습니다. 기존 항목을 열어 수정해 주세요." });
+      return;
+    }
 
     setPendingAction("save");
     startTransition(async () => {
@@ -390,7 +402,7 @@ export function AdminCommunityManager({
           contentType: "Activity",
           imageUrl,
           locale: editor.locale,
-          preventOverwrite: editor.kind === "post" && !selectedItem,
+          preventOverwrite: !selectedItem,
           slug,
           sourceUrl,
           status: editor.status,
@@ -614,13 +626,23 @@ export function AdminCommunityManager({
               </button>
             </div>
 
+          <p className="community-editor-note">게시글은 선택한 언어에만 표시됩니다. 한국어 원문을 저장한 뒤 각 언어의 번역을 별도로 등록하세요. 번역은 검수 완료로 저장한 후 다시 열어 최고 관리자가 노출로 저장해야 공개됩니다.</p>
+          {selectedItem ? (
+            <div className="community-editor-actions" aria-label="다른 언어 번역 만들기">
+              {Object.entries(localeLabels).filter(([locale]) => locale !== editor.locale).map(([locale, label]) => (
+                <button className="console-row-action" disabled={isBusy || items.some((item) => item.slug === editor.slug && item.locale === locale)} key={locale} onClick={() => startTranslation(locale)} type="button">
+                  {label} 번역 초안 만들기{items.some((item) => item.slug === editor.slug && item.locale === locale) ? " (등록됨)" : ""}
+                </button>
+              ))}
+            </div>
+          ) : null}
           <div className={isPhotoGalleryPost ? "admin-editor-grid is-photo-gallery" : "admin-editor-grid"}>
             <label>
               관리 유형
               <select
                 onChange={(event) => updateEditor("kind", event.target.value)}
                 value={editor.kind}
-                disabled={Boolean(selectedItem)}
+                disabled={isKeyLocked}
               >
                 <option value="board">게시판 소개</option>
                 <option value="post">게시글</option>
@@ -631,7 +653,7 @@ export function AdminCommunityManager({
             </label>
             <label>
               언어
-              <select onChange={(event) => updateEditor("locale", event.target.value)} value={editor.locale}>
+              <select disabled={isKeyLocked} onChange={(event) => updateEditor("locale", event.target.value)} value={editor.locale}>
                 {Object.entries(localeLabels).map(([value, label]) => (
                   <option key={value} value={value}>
                     {label}
@@ -679,7 +701,7 @@ export function AdminCommunityManager({
                 placeholder={editor.kind === "board" ? "notice" : "notice-20260727-143012123"}
                 required
                 value={editor.kind === "board" ? editor.boardKey : editor.slug}
-                disabled={editor.kind === "board" || Boolean(selectedItem) || !editor.boardKey}
+                disabled={editor.kind === "board" || isKeyLocked || !editor.boardKey}
               />
               <span className="admin-field-help">
                 {editor.kind === "board"
@@ -691,7 +713,7 @@ export function AdminCommunityManager({
               게시 상태
               <select onChange={(event) => updateEditor("status", event.target.value)} value={editor.status}>
                 {Object.entries(statusLabels).map(([value, label]) => (
-                  <option key={value} value={value}>
+                  <option disabled={value === "published" && editor.locale !== "ko" && selectedItem?.status !== "reviewed"} key={value} value={value}>
                     {label}
                   </option>
                 ))}

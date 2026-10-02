@@ -59,6 +59,7 @@ const adminNavItems: AdminNavItem[] = [
   { href: "/admin/courses", icon: BookOpen, key: "courses", label: "과정 관리" },
   { href: "/admin/directors", icon: UserRoundCog, key: "directors", label: "국제 디렉터" },
   { href: "/admin/community", icon: MessageSquare, key: "community", label: "커뮤니티 관리" },
+  { href: "/admin/translations", icon: Globe2, key: "translations", label: "번역 관리" },
   { href: "/admin/inquiries", icon: Inbox, key: "inquiries", label: "문의 관리" },
   { href: "/admin/users", icon: Users, key: "users", label: "사용자 관리" },
   { href: "/admin/certifications", icon: ShieldCheck, key: "certifications", label: "자격 데이터" },

@@ -36,7 +36,7 @@ export default async function InstructorsPage({ params }: { params: Promise<{ lo
       ? publishedDirectors.map((director) => ({
           imageUrl: director.imageUrl || "/assets/instructor-profile-kim-moonsun.jpg",
           name: director.title,
-          role: director.lead || (locale === "zh-CN" ? "国际负责人" : "국제 디렉터")
+          role: director.lead || ({ ko: "국제 디렉터", en: "International Director", es: "Director internacional", "zh-CN": "国际总监" }[locale])
         }))
       : t.instructorsPage.instructors.map((instructor) => ({
           imageUrl: instructor.imageUrl,

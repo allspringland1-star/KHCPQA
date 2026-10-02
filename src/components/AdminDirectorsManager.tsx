@@ -15,6 +15,7 @@ import {
 } from "@/app/admin/actions";
 import { AdminStatusBadge, AdminTable, getTone } from "@/components/AdminConsole";
 import type { AdminContentRow } from "@/lib/admin-data";
+import { adminLocaleLabels as localeLabels, createTranslationDraft } from "@/lib/admin-content-locales";
 
 type ActionResult = SaveAdminContentResult | DeleteAdminContentResult | UploadAdminContentImageResult;
 
@@ -128,6 +129,8 @@ export function AdminDirectorsManager({
   const [selectedImagePreviewUrl, setSelectedImagePreviewUrl] = useState("");
   const [selectedItem, setSelectedItem] = useState<AdminContentRow | null>(null);
   const [statusFilter, setStatusFilter] = useState("");
+  const [localeFilter, setLocaleFilter] = useState("");
+  const [isTranslation, setIsTranslation] = useState(false);
   const [pendingAction, setPendingAction] = useState<"delete" | "save" | null>(null);
   const [isPending, startTransition] = useTransition();
   const isBusy = isPending || pendingAction !== null;
@@ -143,9 +146,9 @@ export function AdminDirectorsManager({
         item.summary?.toLowerCase().includes(keyword);
       const matchesStatus = !statusFilter || item.status === statusFilter;
 
-      return matchesKeyword && matchesStatus;
+      return matchesKeyword && matchesStatus && (!localeFilter || item.locale === localeFilter);
     });
-  }, [items, search, statusFilter]);
+  }, [items, search, statusFilter, localeFilter]);
 
   const rows = filteredItems.map((item) => ({
     id: item.id ?? `${item.locale}-${item.slug}`,
@@ -161,6 +164,7 @@ export function AdminDirectorsManager({
       </button>
     ),
     role: item.summary ?? "-",
+    locale: localeLabels[item.locale] ?? item.locale,
     status: <AdminStatusBadge tone={getTone(item.status)}>{statusLabel(item.status)}</AdminStatusBadge>,
     title: (
       <button className="community-link-button" onClick={() => selectItem(item)} type="button">
@@ -204,6 +208,7 @@ export function AdminDirectorsManager({
   }
 
   function startCreate() {
+    setIsTranslation(false);
     setIsEditorOpen(true);
     setSelectedItem(null);
     setResult(null);
@@ -215,6 +220,7 @@ export function AdminDirectorsManager({
   }
 
   function selectItem(item: AdminContentRow) {
+    setIsTranslation(false);
     const summary = parseDirectorSummary(item.summary ?? "");
     const profileSections = parseProfileSections(item.body ?? "");
 
@@ -241,12 +247,30 @@ export function AdminDirectorsManager({
     setEditor((current) => ({ ...current, [name]: value }));
   }
 
+  function startTranslation(locale: string) {
+    const draft = createTranslationDraft(editor, locale, items);
+    if (!draft) {
+      setResult({ ok: false, message: "해당 언어 디렉터가 이미 있습니다. 목록에서 기존 항목을 수정해 주세요." });
+      return;
+    }
+    setSelectedItem(null);
+    setIsTranslation(true);
+    resetImageInput();
+    setEditor(draft);
+    setResult({ ok: true, message: "번역 초안을 복사했습니다. 내용을 번역하고 검수 완료로 저장하세요." });
+  }
+
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setResult(null);
 
     const formData = new FormData(event.currentTarget);
     const slug = editor.slug.trim().toLowerCase();
+
+    if (!selectedItem && items.some((item) => item.slug === slug && item.locale === editor.locale)) {
+      setResult({ ok: false, message: "해당 언어 디렉터가 이미 있습니다. 기존 항목을 열어 수정해 주세요." });
+      return;
+    }
 
     if (!slug.startsWith("director-")) {
       setResult({ ok: false, message: "슬러그는 director-로 시작해야 공개 국제 디렉터 영역에 연결됩니다." });
@@ -355,6 +379,7 @@ export function AdminDirectorsManager({
           <div>
             <h2>국제 디렉터 목록</h2>
             <p>공개 화면은 노출 상태의 director-* 페이지 콘텐츠를 우선 사용합니다.</p>
+            <p>언어별 프로필을 등록합니다. 한국어를 먼저 저장하고 다른 언어는 번역 초안을 만들어 검수 후 공개하세요.</p>
           </div>
           <button className="console-primary-button" onClick={startCreate} type="button">
             <UserPlus size={16} />
@@ -363,6 +388,13 @@ export function AdminDirectorsManager({
         </div>
 
         <div className="console-filter-bar">
+          <label className="console-select">
+            <span className="sr-only">언어 필터</span>
+            <select onChange={(event) => setLocaleFilter(event.target.value)} value={localeFilter}>
+              <option value="">전체 언어</option>
+              {Object.entries(localeLabels).map(([locale, label]) => <option key={locale} value={locale}>{label}</option>)}
+            </select>
+          </label>
           <label className="console-search-input">
             <span className="sr-only">디렉터 검색</span>
             <input onChange={(event) => setSearch(event.target.value)} placeholder="이름, 직책, 국가 검색" value={search} />
@@ -382,6 +414,7 @@ export function AdminDirectorsManager({
           columns={[
             { key: "image", label: "사진", align: "center" },
             { key: "title", label: "이름" },
+            { key: "locale", label: "언어" },
             { key: "role", label: "직책/국가" },
             { key: "status", label: "상태" },
             { key: "updatedAt", label: "최종 수정일" },
@@ -419,12 +452,30 @@ export function AdminDirectorsManager({
             {result ? <div className={result.ok ? "console-success-message" : "console-error-message"}>{result.message}</div> : null}
 
             <form className="admin-editor-form community-editor-form" onSubmit={handleSubmit}>
+              <p className="community-editor-note">번역은 검수 완료로 저장한 후 다시 열어 최고 관리자가 노출로 저장해야 공개됩니다. 기존 항목의 언어는 고정됩니다.</p>
+              {selectedItem ? (
+                <div className="community-editor-actions" aria-label="다른 언어 번역 만들기">
+                  {Object.entries(localeLabels).filter(([locale]) => locale !== editor.locale).map(([locale, label]) => (
+                    <button className="console-row-action" disabled={isBusy || items.some((item) => item.slug === editor.slug && item.locale === locale)} key={locale} onClick={() => startTranslation(locale)} type="button">
+                      {label} 번역 초안 만들기{items.some((item) => item.slug === editor.slug && item.locale === locale) ? " (등록됨)" : ""}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
               <div className="community-form-grid">
+                <label>
+                  <span>언어</span>
+                  <select disabled={Boolean(selectedItem) || isTranslation} onChange={(event) => updateEditor("locale", event.target.value)} value={editor.locale}>
+                    {Object.entries(localeLabels).map(([locale, label]) => <option key={locale} value={locale}>{label}</option>)}
+                  </select>
+                </label>
                 <label>
                   <span>상태</span>
                   <select onChange={(event) => updateEditor("status", event.target.value)} value={editor.status}>
                     <option value="draft">임시저장</option>
-                    <option value="published">노출</option>
+                    <option value="translated">번역 완료</option>
+                    <option value="reviewed">검수 완료</option>
+                    <option disabled={editor.locale !== "ko" && selectedItem?.status !== "reviewed"} value="published">노출</option>
                     <option value="archived">비노출</option>
                   </select>
                 </label>
@@ -503,15 +554,20 @@ export function AdminDirectorsManager({
         </div>
       ) : null}
 
-      {items.length === 0 ? (
+      {fallbackDirectors.some((director) => !items.some((item) => item.slug === director.slug && item.locale === "ko")) ? (
         <section className="console-panel director-fallback-panel">
           <h2>기본 표시 목록</h2>
+          <p>기본 프로필은 아직 저장된 CMS 항목이 아닙니다. 한국어로 등록한 뒤 같은 항목에서 번역 초안을 만드세요. 한 언어에 노출 항목을 등록하면 그 언어의 기본 목록 전체를 대체하므로 필요한 디렉터를 모두 등록해 주세요.</p>
           <div className="director-fallback-grid">
-            {fallbackDirectors.map((director) => (
+            {fallbackDirectors.filter((director) => !items.some((item) => item.slug === director.slug && item.locale === "ko")).map((director) => (
               <article key={director.slug}>
                 <img alt="" src={director.imageUrl} />
                 <strong>{director.name}</strong>
                 <span>{director.role}</span>
+                <button className="console-row-action" onClick={() => {
+                  startCreate();
+                  setEditor({ ...blankEditor, title: director.name, roleTitle: director.role, imageUrl: director.imageUrl, slug: director.slug });
+                }} type="button">한국어로 등록</button>
               </article>
             ))}
           </div>

@@ -1,3 +1,4 @@
+import { internationalDirectors, leadershipGreetings } from "./leadership-localizations";
 import type { Copy } from "./content";
 
 // Simplified Chinese public copy. Keep route keys, asset paths and identifiers stable.
@@ -69,17 +70,13 @@ export const chineseCopy = {
   },
   aboutSubnav: [
     { key: "intro", title: "协会介绍", href: "about" }, { key: "greeting", title: "领导致辞", href: "about/greeting" },
-    { key: "instructors", title: "资深讲师", href: "about/instructors" }, { key: "history", title: "发展历程", href: "about/history" },
+    { key: "instructors", title: "国际总监", href: "about/instructors" }, { key: "history", title: "发展历程", href: "about/history" },
     { key: "organization", title: "组织架构", href: "about/organization" }
   ],
   greetingPage: {
     eyebrow: "领导致辞", title: "领导致辞", lead: "",
     greetings: [
-      { name: "Bong Seong-jung", role: "韩国健康管理师资格协会会长", imageUrl: "/assets/greeting-bong-seongjong-smiling.jpg", paragraphs: [
-        "随着替代医学与服务产业的发展，本协会致力于为健康与美容产业创造新的教育协同效应。",
-        "KAHC 通过交流体系支持学员持续成长，并以国际化教育体系与系统管理履行协会职责。",
-        "协会不断探索新的课程，与会员共同成长，致力于以明确的目标、先进的技术与优质的教育服务学员。"
-      ] },
+      ...leadershipGreetings["zh-CN"],
       { name: "Moon Soon-young", role: "副会长／首尔总部院长", imageUrl: "/assets/greeting-moon-soonyoung.jpg", paragraphs: [
         "首尔总部位于首尔市中心，毗邻地铁1、3、5号线交汇的钟路三街站。",
         "对于准备从事皮肤护理、美甲、化妆、美发与按摩工作的学员，选择教育机构十分重要。总部提供国家资格理论与实操课程，以及美容院技术、医学皮肤护理、芳香、经络、运动与足部按摩等从基础到进阶的培训。",
@@ -97,23 +94,7 @@ export const chineseCopy = {
       ] }
     ]
   },
-  instructorsPage: {
-    eyebrow: "讲师团队", title: "资深讲师介绍", lead: "",
-    instructors: [
-      { name: "Nam Tae-hyun", role: "资深讲师", imageUrl: "/assets/instructor-nam-taehyun.jpg", profileImageUrl: "/assets/instructor-profile-nam-taehyun.jpg" },
-      { name: "Cha Young-il", role: "资深讲师", imageUrl: "/assets/instructor-cha-youngil.jpg", profileImageUrl: "/assets/instructor-profile-cha-youngil.jpg" },
-      { name: "Lee Da-yeon", role: "资深讲师", imageUrl: "/assets/instructor-lee-dayeon.jpg", profileImageUrl: "/assets/instructor-profile-lee-dayeon.jpg" },
-      { name: "Shim Eun-a", role: "资深讲师", imageUrl: "/assets/instructor-shim-euna.jpg", profileImageUrl: "/assets/instructor-profile-shim-euna.jpg" },
-      { name: "Jo Eun-jin", role: "资深讲师", imageUrl: "/assets/instructor-jo-eunjin.jpg", profileImageUrl: "/assets/instructor-profile-jo-eunjin.jpg" },
-      { name: "Ju Mi-hyun", role: "资深讲师", imageUrl: "/assets/instructor-ju-mihyun.jpg", profileImageUrl: "/assets/instructor-profile-ju-mihyun.jpg" },
-      { name: "Kim Moon-sun", role: "资深讲师", imageUrl: "/assets/instructor-kim-moonsun.jpg", profileImageUrl: "/assets/instructor-profile-kim-moonsun.jpg" },
-      { name: "Lee Seon-hwa", role: "资深讲师", imageUrl: "/assets/instructor-lee-seonhwa.jpg", profileImageUrl: "/assets/instructor-profile-lee-seonhwa.jpg" },
-      { name: "Lee Yong-ho", role: "资深讲师", imageUrl: "/assets/instructor-lee-yongho.jpg", profileImageUrl: "/assets/instructor-profile-lee-yongho.jpg" },
-      { name: "Kim Hae-rim", role: "资深讲师", imageUrl: "/assets/instructor-kim-haerim.jpg", profileImageUrl: "/assets/instructor-profile-kim-haerim.jpg" },
-      { name: "Park Jae-young", role: "资深讲师", imageUrl: "/assets/instructor-park-jaeyoung.jpg", profileImageUrl: "/assets/instructor-profile-park-jaeyoung.jpg" },
-      { name: "Song Jin-hwa", role: "资深讲师", imageUrl: "/assets/instructor-song-jinhwa.jpg", profileImageUrl: "/assets/instructor-profile-song-jinhwa.jpg" }
-    ]
-  },
+  instructorsPage: { eyebrow: "国际总监", title: "国际总监", lead: "", instructors: internationalDirectors["zh-CN"] },
   historyPage: { eyebrow: "发展历程", title: "KAHC 发展历程", lead: "", imageAlt: "SMC Academy 发展历程图片", yearsLabel: "年份", timelineLabel: "年度历程", detailNote: "根据原发展历程页面的年度记录整理。", dateLabel: "日期", titleLabel: "事项" },
   organizationPage: { eyebrow: "组织架构", title: "KAHC 组织架构", lead: "", imageAlt: "KAHC 与 SMC Academy 组织架构图", units: [
     { title: "国际主席", body: "统筹国际教育交流与合作方向。" }, { title: "协会运营", body: "KAHC 管理教育、资格认证及分支机构运营体系。" },

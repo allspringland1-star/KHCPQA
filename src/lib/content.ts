@@ -1,3 +1,4 @@
+import { internationalDirectors, leadershipGreetings } from "./leadership-localizations";
 import {
   Award,
   BadgeCheck,
@@ -1250,7 +1251,7 @@ export const copy = {
     aboutSubnav: [
       { key: "intro", title: "Introduction", href: "about" },
       { key: "greeting", title: "Greetings", href: "about/greeting" },
-      { key: "instructors", title: "Senior Instructor Profiles", href: "about/instructors" },
+      { key: "instructors", title: "International Directors", href: "about/instructors" },
       { key: "history", title: "History", href: "about/history" },
       { key: "organization", title: "Organization", href: "about/organization" }
     ],
@@ -1259,16 +1260,7 @@ export const copy = {
       title: "Leadership Greetings",
       lead: "",
       greetings: [
-        {
-          name: "Bong Seong-jung",
-          role: "President, Korea Health Manager Approved Association",
-          imageUrl: "/assets/greeting-bong-seongjong-smiling.jpg",
-          paragraphs: [
-            "The association is structured to create new educational synergy for the health and beauty industry in step with the growth of alternative medicine and service industries.",
-            "KAHC maintains an exchange system that helps learners grow from the present into the future, and it will continue to fulfill its role through a world-class education system and organized management.",
-            "The association develops programs with new possibilities and aims for shared growth with its members. It will grow as an institution with clear goals, advanced techniques, and first-class education."
-          ]
-        },
+        ...leadershipGreetings["en"],
         {
           name: "Moon Soon-young",
           role: "Vice President / Director, Seoul Headquarters",
@@ -1302,28 +1294,7 @@ export const copy = {
         }
       ]
     },
-    instructorsPage: {
-      eyebrow: "Senior Instructors",
-      title: "Senior Instructor Profiles",
-      lead: "Senior instructors leading practical health and beauty training and certification education.",
-      instructors: [
-        { name: "Lee Jung-hwa", role: "Senior Instructor", imageUrl: "/assets/instructor-lee-junghwa.jpg", profileImageUrl: "/assets/instructor-profile-lee-junghwa.jpg" },
-        { name: "Lee Yu-ji", role: "Senior Instructor", imageUrl: "/assets/instructor-lee-yuji.jpg", profileImageUrl: "/assets/instructor-profile-lee-yuji.jpg" },
-        { name: "Yoon Eun-eun", role: "Senior Instructor", imageUrl: "/assets/instructor-yoon-euneun.jpg", profileImageUrl: "/assets/instructor-profile-yoon-euneun.jpg" },
-        { name: "Nam Tae-hyun", role: "Senior Instructor", imageUrl: "/assets/instructor-nam-taehyun.jpg", profileImageUrl: "/assets/instructor-profile-nam-taehyun.jpg" },
-        { name: "Cha Young-il", role: "Senior Instructor", imageUrl: "/assets/instructor-cha-youngil.jpg", profileImageUrl: "/assets/instructor-profile-cha-youngil.jpg" },
-        { name: "Lee Da-yeon", role: "Senior Instructor", imageUrl: "/assets/instructor-lee-dayeon.jpg", profileImageUrl: "/assets/instructor-profile-lee-dayeon.jpg" },
-        { name: "Shim Eun-a", role: "Senior Instructor", imageUrl: "/assets/instructor-shim-euna.jpg", profileImageUrl: "/assets/instructor-profile-shim-euna.jpg" },
-        { name: "Jo Eun-jin", role: "Senior Instructor", imageUrl: "/assets/instructor-jo-eunjin.jpg", profileImageUrl: "/assets/instructor-profile-jo-eunjin.jpg" },
-        { name: "Ju Mi-hyun", role: "Senior Instructor", imageUrl: "/assets/instructor-ju-mihyun.jpg", profileImageUrl: "/assets/instructor-profile-ju-mihyun.jpg" },
-        { name: "Kim Moon-sun", role: "Senior Instructor", imageUrl: "/assets/instructor-kim-moonsun.jpg", profileImageUrl: "/assets/instructor-profile-kim-moonsun.jpg" },
-        { name: "Lee Seon-hwa", role: "Senior Instructor", imageUrl: "/assets/instructor-lee-seonhwa.jpg", profileImageUrl: "/assets/instructor-profile-lee-seonhwa.jpg" },
-        { name: "Lee Yong-ho", role: "Senior Instructor", imageUrl: "/assets/instructor-lee-yongho.jpg", profileImageUrl: "/assets/instructor-profile-lee-yongho.jpg" },
-        { name: "Kim Hae-rim", role: "Senior Instructor", imageUrl: "/assets/instructor-kim-haerim.jpg", profileImageUrl: "/assets/instructor-profile-kim-haerim.jpg" },
-        { name: "Park Jae-young", role: "Senior Instructor", imageUrl: "/assets/instructor-park-jaeyoung.jpg", profileImageUrl: "/assets/instructor-profile-park-jaeyoung.jpg" },
-        { name: "Song Jin-hwa", role: "Senior Instructor", imageUrl: "/assets/instructor-song-jinhwa.jpg", profileImageUrl: "/assets/instructor-profile-song-jinhwa.jpg" }
-      ]
-    },
+    instructorsPage: { eyebrow: "International Directors", title: "International Directors", lead: "", instructors: internationalDirectors["en"] },
     historyPage: {
       eyebrow: "History",
       title: "KAHC History",
@@ -1827,7 +1798,7 @@ export const copy = {
     aboutSubnav: [
       { key: "intro", title: "Introducción", href: "about" },
       { key: "greeting", title: "Saludos", href: "about/greeting" },
-      { key: "instructors", title: "Instructores principales", href: "about/instructors" },
+      { key: "instructors", title: "Directores internacionales", href: "about/instructors" },
       { key: "history", title: "Historia", href: "about/history" },
       { key: "organization", title: "Organización", href: "about/organization" }
     ],
@@ -1836,16 +1807,7 @@ export const copy = {
       title: "Saludos de la Dirección",
       lead: "",
       greetings: [
-        {
-          name: "Bong Seong-jung",
-          role: "Presidente de Korea Health Manager Approved Association",
-          imageUrl: "/assets/greeting-bong-seongjong-smiling.jpg",
-          paragraphs: [
-            "La asociación cuenta con un sistema educativo diseñado para crear sinergia en la formación de salud y belleza junto con el crecimiento de la medicina alternativa y la industria de servicios.",
-            "KAHC mantiene un sistema de intercambio para ayudar a los estudiantes a crecer desde el presente hacia el futuro, y seguirá cumpliendo su papel mediante educación de nivel mundial y gestión organizada.",
-            "La asociación desarrolla programas con nuevas posibilidades y busca crecer junto con sus miembros como una institución con objetivos claros, tecnología avanzada y educación de primer nivel."
-          ]
-        },
+        ...leadershipGreetings["es"],
         {
           name: "Moon Soon-young",
           role: "Vicepresidenta / Directora de la Sede Central de Seúl",
@@ -1879,28 +1841,7 @@ export const copy = {
         }
       ]
     },
-    instructorsPage: {
-      eyebrow: "Instructores principales",
-      title: "Perfiles de instructores principales",
-      lead: "Instructores principales que dirigen la formación práctica en salud, belleza y certificación.",
-      instructors: [
-        { name: "Lee Jung-hwa", role: "Instructora principal", imageUrl: "/assets/instructor-lee-junghwa.jpg", profileImageUrl: "/assets/instructor-profile-lee-junghwa.jpg" },
-        { name: "Lee Yu-ji", role: "Instructora principal", imageUrl: "/assets/instructor-lee-yuji.jpg", profileImageUrl: "/assets/instructor-profile-lee-yuji.jpg" },
-        { name: "Yoon Eun-eun", role: "Instructora principal", imageUrl: "/assets/instructor-yoon-euneun.jpg", profileImageUrl: "/assets/instructor-profile-yoon-euneun.jpg" },
-        { name: "Nam Tae-hyun", role: "Instructor principal", imageUrl: "/assets/instructor-nam-taehyun.jpg", profileImageUrl: "/assets/instructor-profile-nam-taehyun.jpg" },
-        { name: "Cha Young-il", role: "Instructor principal", imageUrl: "/assets/instructor-cha-youngil.jpg", profileImageUrl: "/assets/instructor-profile-cha-youngil.jpg" },
-        { name: "Lee Da-yeon", role: "Instructora principal", imageUrl: "/assets/instructor-lee-dayeon.jpg", profileImageUrl: "/assets/instructor-profile-lee-dayeon.jpg" },
-        { name: "Shim Eun-a", role: "Instructora principal", imageUrl: "/assets/instructor-shim-euna.jpg", profileImageUrl: "/assets/instructor-profile-shim-euna.jpg" },
-        { name: "Jo Eun-jin", role: "Instructora principal", imageUrl: "/assets/instructor-jo-eunjin.jpg", profileImageUrl: "/assets/instructor-profile-jo-eunjin.jpg" },
-        { name: "Ju Mi-hyun", role: "Instructora principal", imageUrl: "/assets/instructor-ju-mihyun.jpg", profileImageUrl: "/assets/instructor-profile-ju-mihyun.jpg" },
-        { name: "Kim Moon-sun", role: "Instructora principal", imageUrl: "/assets/instructor-kim-moonsun.jpg", profileImageUrl: "/assets/instructor-profile-kim-moonsun.jpg" },
-        { name: "Lee Seon-hwa", role: "Instructora principal", imageUrl: "/assets/instructor-lee-seonhwa.jpg", profileImageUrl: "/assets/instructor-profile-lee-seonhwa.jpg" },
-        { name: "Lee Yong-ho", role: "Instructor principal", imageUrl: "/assets/instructor-lee-yongho.jpg", profileImageUrl: "/assets/instructor-profile-lee-yongho.jpg" },
-        { name: "Kim Hae-rim", role: "Instructora principal", imageUrl: "/assets/instructor-kim-haerim.jpg", profileImageUrl: "/assets/instructor-profile-kim-haerim.jpg" },
-        { name: "Park Jae-young", role: "Instructor principal", imageUrl: "/assets/instructor-park-jaeyoung.jpg", profileImageUrl: "/assets/instructor-profile-park-jaeyoung.jpg" },
-        { name: "Song Jin-hwa", role: "Instructora principal", imageUrl: "/assets/instructor-song-jinhwa.jpg", profileImageUrl: "/assets/instructor-profile-song-jinhwa.jpg" }
-      ]
-    },
+    instructorsPage: { eyebrow: "Directores internacionales", title: "Directores internacionales", lead: "", instructors: internationalDirectors["es"] },
     historyPage: {
       eyebrow: "Historia",
       title: "Historia de KAHC",
