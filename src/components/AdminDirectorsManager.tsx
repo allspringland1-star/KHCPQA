@@ -457,6 +457,7 @@ export function AdminDirectorsManager({
             </div>
 
             <form className="admin-editor-form community-editor-form director-editor-form" onSubmit={handleSubmit}>
+              <div className="director-editor-scroll" tabIndex={0} role="region" aria-label="디렉터 입력 항목">
               <fieldset className="director-editor-fields" disabled={isBusy}>
               {result ? <div role="status" className={result.ok ? "console-success-message" : "console-error-message"}>{result.message}</div> : null}
               <p className="community-editor-note">사진과 명단은 모든 언어에 공통 적용됩니다. 번역은 검수 완료 후 노출로 저장하세요.</p>
@@ -545,6 +546,7 @@ export function AdminDirectorsManager({
               ) : null}
 
               </fieldset>
+              </div>
               {confirmDelete ? <div className="director-delete-confirm" role="alert">
                 <strong>{editor.title} 항목을 삭제할까요?</strong>
                 <p>삭제하면 복구할 수 없습니다. 한국어 항목은 모든 언어의 공개 명단에서도 사라집니다.</p>
