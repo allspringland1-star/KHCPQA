@@ -11,6 +11,7 @@ type PublishedContentRow = {
   summary: string | null;
   title: string;
   updated_at?: string;
+  translated_from_updated_at?: string;
   view_count?: number | null;
 };
 
@@ -42,6 +43,8 @@ export type PaginatedActivityPosts = {
 };
 
 export type PublishedContentSection = {
+  updatedAt?: string;
+  translatedFromUpdatedAt?: string;
   body: string;
   imageUrl?: string;
   lead: string;
@@ -332,7 +335,7 @@ export async function getPublishedContentSections({
   const supabase = createClient();
   const { data, error } = await supabase
     .from("admin_content_items")
-    .select("slug, title, summary, body, image_url")
+    .select("slug, title, summary, body, image_url, updated_at, translated_from_updated_at")
     .eq("content_type", contentType)
     .eq("locale", locale)
     .eq("status", "published")
@@ -347,6 +350,8 @@ export async function getPublishedContentSections({
   return (data as PublishedContentRow[])
     .filter((row): row is PublishedContentRow & { slug: string } => Boolean(row.slug))
     .map((row) => ({
+      updatedAt: row.updated_at,
+      translatedFromUpdatedAt: row.translated_from_updated_at,
       body: row.body || "",
       imageUrl: row.image_url || undefined,
       lead: row.summary || "",

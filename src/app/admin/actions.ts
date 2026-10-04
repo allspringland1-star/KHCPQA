@@ -275,7 +275,7 @@ function revalidateManagedContent(input: {
   if (input.contentType === "Page") {
     if (input.slug.startsWith("director-")) {
       revalidatePath("/admin/directors");
-      revalidatePath(`/${input.locale}/about/instructors`);
+      locales.forEach((locale) => revalidatePath(`/${locale}/about/instructors`));
       return;
     }
 
@@ -1227,6 +1227,10 @@ export async function saveAdminContent(input: {
         .eq("slug", trimmed.slug)
         .maybeSingle()).data;
   const sourceUpdatedAt = sourceRow?.updated_at ?? null;
+  if (trimmed.contentType === "Page" && trimmed.slug.startsWith("director-") && trimmed.locale !== "ko" && !sourceUpdatedAt) {
+    return { ok: false, message: "디렉터는 한국어로 먼저 등록한 뒤 같은 항목에서 번역을 만들어 주세요." };
+  }
+
 
   if (trimmed.locale !== "ko" && !sourceUpdatedAt && trimmed.status === "published") {
     return { ok: false, message: "게시할 번역과 연결된 한국어 원문이 없습니다." };

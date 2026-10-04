@@ -24,16 +24,18 @@ test("director admin page manages Page content with director slugs", async () =>
   assert.match(managerSource, /uploadAdminContentImage/);
 });
 
-test("public instructor page reads published director content before fallback copy", async () => {
+test("public director page uses canonical Korean roster without old fallback", async () => {
   const source = await readFile("src/app/[locale]/about/instructors/page.tsx", "utf8");
   const actionsSource = await readFile("src/app/admin/actions.ts", "utf8");
 
   assert.match(source, /getPublishedContentSections/);
   assert.match(source, /contentType: "Page"/);
   assert.match(source, /slugPrefix: "director-"/);
-  assert.match(source, /publishedDirectors\.length > 0/);
+  assert.match(source, /resolveDirectorRoster/);
+  assert.match(source, /locale: "ko"/);
+  assert.doesNotMatch(source, /t\.instructorsPage\.instructors/);
   assert.match(actionsSource, /input\.slug\.startsWith\("director-"\)/);
-  assert.match(actionsSource, /revalidatePath\(`\/\$\{input\.locale\}\/about\/instructors`\)/);
+  assert.match(actionsSource, /locales\.forEach\(\(locale\) => revalidatePath\(`\/\$\{locale\}\/about\/instructors`\)\)/);
 });
 
 test("director create and edit form opens in a modal dialog", async () => {
