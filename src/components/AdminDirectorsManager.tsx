@@ -14,6 +14,7 @@ import {
   type UploadAdminContentImageResult
 } from "@/app/admin/actions";
 import { AdminStatusBadge, AdminTable, getTone } from "@/components/AdminConsole";
+import { filterDirectorGroups } from "@/lib/director-admin-list";
 import type { AdminContentRow } from "@/lib/admin-data";
 import { adminLocaleLabels as localeLabels, resolveTranslationEditor } from "@/lib/admin-content-locales";
 
@@ -140,20 +141,10 @@ export function AdminDirectorsManager({
     };
   }, [isEditorOpen]);
 
-  const filteredItems = useMemo(() => {
-    const keyword = search.trim().toLowerCase();
-
-    return items.filter((item) => {
-      const matchesKeyword =
-        !keyword ||
-        item.title.toLowerCase().includes(keyword) ||
-        item.slug?.toLowerCase().includes(keyword) ||
-        item.summary?.toLowerCase().includes(keyword);
-      const matchesStatus = !statusFilter || item.status === statusFilter;
-
-      return matchesKeyword && matchesStatus && (!localeFilter || item.locale === localeFilter);
-    });
-  }, [items, search, statusFilter, localeFilter]);
+  const filteredItems = useMemo(
+    () => filterDirectorGroups(items, search, localeFilter, statusFilter),
+    [items, search, localeFilter, statusFilter]
+  );
 
   const rows = filteredItems.map((item) => ({
     id: item.id ?? `${item.locale}-${item.slug}`,
@@ -176,10 +167,14 @@ export function AdminDirectorsManager({
         {item.title}
       </button>
     ),
-    translations: item.locale === "ko" ? Object.entries(localeLabels).filter(([locale]) => locale !== "ko").map(([locale, label]) => {
+    translations: <div className="director-language-actions">{Object.entries(localeLabels).map(([locale, label]) => {
       const translated = items.find((row) => row.slug === item.slug && row.locale === locale);
-      return <button key={locale} className="community-link-button" type="button" onClick={() => openTranslation(item, locale)}>{label}: {translated ? statusLabel(translated.status) : "미등록"} </button>;
-    }) : "한국어 항목과 연결됨",
+      return <button key={locale} className="director-language-button" type="button"
+        aria-label={`${item.title} ${label} ${translated ? "편집" : "번역 추가"}`}
+        onClick={() => locale === "ko" ? selectItem(item) : openTranslation(item, locale)}>
+        <strong>{label}</strong><span>{translated ? statusLabel(translated.status) : "번역 추가"}</span>
+      </button>;
+    })}</div>,
     updatedAt: item.updatedAt
   }));
 
@@ -379,7 +374,7 @@ export function AdminDirectorsManager({
           <div>
             <h2>국제 디렉터 목록</h2>
             <p>한국어 항목의 명단·사진·노출 상태가 모든 언어에 공통으로 적용됩니다.</p>
-            <p>한국어로 등록한 뒤 같은 항목에서 번역을 관리하세요. 번역이 없거나 한국어 원문이 변경되면 최신 한국어 정보를 표시합니다.</p>
+            <p>한 사람을 한 줄로 표시합니다. 언어별 버튼으로 번역을 추가하거나 수정하세요.</p>
           </div>
           <button className="console-primary-button" onClick={startCreate} type="button">
             <UserPlus size={16} />
@@ -391,7 +386,7 @@ export function AdminDirectorsManager({
           <label className="console-select">
             <span className="sr-only">언어 필터</span>
             <select onChange={(event) => setLocaleFilter(event.target.value)} value={localeFilter}>
-              <option value="">전체 언어</option>
+              <option value="">전체 번역 언어</option>
               {Object.entries(localeLabels).map(([locale, label]) => <option key={locale} value={locale}>{label}</option>)}
             </select>
           </label>
@@ -405,6 +400,8 @@ export function AdminDirectorsManager({
               <option value="">전체 상태</option>
               <option value="published">노출</option>
               <option value="draft">임시저장</option>
+              <option value="translated">번역 완료</option>
+              <option value="reviewed">검수 완료</option>
               <option value="archived">비노출</option>
             </select>
           </label>
@@ -414,11 +411,11 @@ export function AdminDirectorsManager({
           columns={[
             { key: "image", label: "사진", align: "center" },
             { key: "title", label: "이름" },
-            { key: "locale", label: "언어" },
+
             { key: "role", label: "직책/국가" },
-            { key: "status", label: "상태" },
-            { key: "translations", label: "번역 현황" },
-            { key: "updatedAt", label: "최종 수정일" },
+            { key: "status", label: "한국어 노출" },
+            { key: "translations", label: "언어별 편집" },
+            { key: "updatedAt", label: "한국어 수정일" },
             { key: "manage", label: "관리", align: "center" }
           ]}
           emptyLabel="등록된 국제 디렉터 콘텐츠가 없습니다."

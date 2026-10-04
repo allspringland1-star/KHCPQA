@@ -14557,3 +14557,9 @@ p {
     grid-column: auto;
   }
 }
+
+.director-language-actions { display: flex; flex-wrap: wrap; gap: 8px; min-width: 250px; }
+.director-language-button { display: flex; flex-direction: column; gap: 4px; min-width: 82px; padding: 9px 12px; border: 1px solid var(--console-line); border-radius: 8px; background: #fff; color: var(--console-ink); text-align: left; cursor: pointer; white-space: nowrap; }
+.director-language-button span { font-size: 11px; color: var(--console-muted); }
+.director-language-button:hover { background: var(--console-purple-soft); border-color: var(--console-purple); }
+.director-language-button:focus-visible { outline: 2px solid var(--console-purple); outline-offset: 2px; }
