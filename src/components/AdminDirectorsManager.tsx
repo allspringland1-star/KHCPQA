@@ -2,7 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element */
 
-import { useMemo, useRef, useState, useTransition, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition, type FormEvent } from "react";
 import { Edit3, ImagePlus, Save, Trash2, UserPlus, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
@@ -111,6 +111,7 @@ export function AdminDirectorsManager({
   items: AdminContentRow[];
 }) {
   const router = useRouter();
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [editor, setEditor] = useState<EditorState>(blankEditor);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
@@ -124,6 +125,20 @@ export function AdminDirectorsManager({
   const [pendingAction, setPendingAction] = useState<"delete" | "save" | null>(null);
   const [isPending, startTransition] = useTransition();
   const isBusy = isPending || pendingAction !== null;
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  useEffect(() => {
+    if (!isEditorOpen) return;
+    const dialog = dialogRef.current;
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    dialog?.showModal();
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      dialog?.close();
+      document.body.style.overflow = previous;
+      opener?.focus();
+    };
+  }, [isEditorOpen]);
 
   const filteredItems = useMemo(() => {
     const keyword = search.trim().toLowerCase();
@@ -195,6 +210,8 @@ export function AdminDirectorsManager({
   }
 
   function closeEditor() {
+    if (isBusy) return;
+    setConfirmDelete(false);
     setIsEditorOpen(false);
     setSelectedItem(null);
     setResult(null);
@@ -324,11 +341,7 @@ export function AdminDirectorsManager({
     }
 
     const selectedId = selectedItem.id;
-    const confirmed = window.confirm(`"${selectedItem.title}" 디렉터 항목을 삭제할까요? 공개 화면에서도 사라질 수 있습니다.`);
-
-    if (!confirmed) {
-      return;
-    }
+    setConfirmDelete(false);
 
     setResult(null);
     setPendingAction("delete");
@@ -418,38 +431,40 @@ export function AdminDirectorsManager({
       </section>
 
       {isEditorOpen ? (
-        <div className="director-modal-backdrop" onMouseDown={closeEditor}>
-          <section
+          <dialog
+            ref={dialogRef}
+            onCancel={(event) => { event.preventDefault(); closeEditor(); }}
             aria-labelledby="director-modal-title"
             aria-modal="true"
+            aria-busy={isBusy}
             className="director-modal-panel is-open"
-            onMouseDown={(event) => event.stopPropagation()}
             role="dialog"
           >
             <div className="community-editor-header">
               <div>
-                <h2 id="director-modal-title">{selectedItem ? "디렉터 수정" : "디렉터 등록"}</h2>
-                <p>이름은 카드 제목, 직책/국가는 카드 설명으로 표시됩니다.</p>
+                <h2 id="director-modal-title">{selectedItem ? `${editor.title} 수정` : "디렉터 등록"}</h2>
+                <p>{localeLabels[editor.locale]} · 이름, 직책과 사진을 관리합니다.</p>
               </div>
               <button
                 aria-label="편집 닫기"
                 className="console-icon-button"
                 onClick={closeEditor}
+                disabled={isBusy}
                 type="button"
               >
                 <X size={16} />
               </button>
             </div>
 
-            {result ? <div className={result.ok ? "console-success-message" : "console-error-message"}>{result.message}</div> : null}
-
-            <form className="admin-editor-form community-editor-form" onSubmit={handleSubmit}>
-              <p className="community-editor-note">번역은 검수 완료로 저장한 후 다시 열어 최고 관리자가 노출로 저장해야 공개됩니다. 신규 등록은 한국어로 시작합니다. 번역의 노출은 한국어 항목이 노출 중일 때만 적용되며, 원문 변경 후에는 다시 검수해야 합니다.</p>
+            <form className="admin-editor-form community-editor-form director-editor-form" onSubmit={handleSubmit}>
+              <fieldset className="director-editor-fields" disabled={isBusy}>
+              {result ? <div role="status" className={result.ok ? "console-success-message" : "console-error-message"}>{result.message}</div> : null}
+              <p className="community-editor-note">사진과 명단은 모든 언어에 공통 적용됩니다. 번역은 검수 완료 후 노출로 저장하세요.</p>
               {selectedItem?.locale === "ko" ? (
-                <div className="community-editor-actions" aria-label="다른 언어 번역 만들기">
+                <div className="director-translation-options" aria-label="다른 언어 번역 만들기">
                   {Object.entries(localeLabels).filter(([locale]) => locale !== editor.locale).map(([locale, label]) => (
-                    <button className="console-row-action" disabled={isBusy} key={locale} onClick={() => { const existing = items.find((item) => item.slug === editor.slug && item.locale === locale); if (existing) selectItem(existing); else startTranslation(locale); }} type="button">
-                      {label} {items.some((item) => item.slug === editor.slug && item.locale === locale) ? "번역 수정" : "번역 초안 만들기"}
+                    <button className="director-translation-button" disabled={isBusy} key={locale} onClick={() => { const existing = items.find((item) => item.slug === editor.slug && item.locale === locale); if (existing) selectItem(existing); else startTranslation(locale); }} type="button">
+                      <strong>{label}</strong><span>{items.some((item) => item.slug === editor.slug && item.locale === locale) ? "번역 수정" : "번역 초안 만들기"}</span>
                     </button>
                   ))}
                 </div>
@@ -529,21 +544,28 @@ export function AdminDirectorsManager({
                 </div>
               ) : null}
 
-              <div className="community-editor-actions">
+              </fieldset>
+              {confirmDelete ? <div className="director-delete-confirm" role="alert">
+                <strong>{editor.title} 항목을 삭제할까요?</strong>
+                <p>삭제하면 복구할 수 없습니다. 한국어 항목은 모든 언어의 공개 명단에서도 사라집니다.</p>
+                <button autoFocus type="button" className="director-secondary-button" onClick={() => setConfirmDelete(false)}>돌아가기</button>
+                <button type="button" className="danger-button" disabled={isBusy} onClick={handleDelete}>삭제 확인</button>
+              </div> : null}
+              <div className="community-editor-actions director-editor-footer">
                 {selectedItem ? (
-                  <button className="danger-button" disabled={isBusy} onClick={handleDelete} type="button">
+                  <button className="danger-button" disabled={isBusy} onClick={() => setConfirmDelete(true)} type="button">
                     <Trash2 size={16} />
                     삭제
                   </button>
                 ) : null}
+                <button className="director-secondary-button" disabled={isBusy} onClick={closeEditor} type="button">닫기</button>
                 <button className="console-primary-button" disabled={isBusy} type="submit">
                   <Save size={16} />
-                  저장
+                  {isBusy ? (pendingAction === "delete" ? "삭제 중…" : "저장 중…") : "변경사항 저장"}
                 </button>
               </div>
             </form>
-          </section>
-        </div>
+          </dialog>
       ) : null}
 
 

@@ -42,12 +42,14 @@ test("director create and edit form opens in a modal dialog", async () => {
   const managerSource = await readFile("src/components/AdminDirectorsManager.tsx", "utf8");
   const styleSource = await readFile("src/styles/globals.css", "utf8");
 
-  assert.match(managerSource, /director-modal-backdrop/);
+  assert.match(managerSource, /<dialog/);
+  assert.match(managerSource, /showModal/);
+  assert.match(managerSource, /onCancel/);
   assert.match(managerSource, /role="dialog"/);
   assert.match(managerSource, /aria-modal="true"/);
   assert.match(managerSource, /director-modal-panel/);
   assert.match(managerSource, /director-modal-panel is-open/);
-  assert.match(styleSource, /\.director-modal-backdrop/);
+  assert.match(styleSource, /\.director-modal-panel::backdrop/);
   assert.match(styleSource, /\.director-modal-panel/);
 });
 

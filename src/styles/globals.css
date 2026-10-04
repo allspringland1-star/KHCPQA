@@ -9676,32 +9676,110 @@ p {
   width: 52px;
 }
 
-.director-modal-backdrop {
-  align-items: center;
-  background: rgba(18, 15, 29, 0.54);
-  display: flex;
-  inset: 0;
-  justify-content: center;
-  padding: 24px;
-  position: fixed;
-  z-index: 1400;
-}
+.director-manager .community-panel-top > .console-primary-button { flex-shrink: 0; white-space: nowrap; }
 
+/* Native dialog keeps the editor above the console and traps keyboard focus. */
 .director-modal-panel {
-  background: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.72);
-  border-radius: 8px;
-  box-shadow: 0 30px 90px rgba(18, 15, 29, 0.32);
-  max-height: min(90vh, 880px);
-  max-width: min(94vw, 780px);
-  overflow: auto;
-  padding: 22px;
-  width: 100%;
+  background: #fff;
+  color: var(--console-ink);
+  border: 1px solid var(--console-line);
+  border-radius: 16px;
+  box-shadow: 0 30px 90px rgba(18, 15, 29, .24);
+  margin: auto;
+  max-height: min(900px, calc(100dvh - 48px));
+  max-width: calc(100vw - 32px);
+  overflow: hidden;
+  padding: 0;
+  width: 860px;
 }
 
-.director-modal-panel.is-open {
-  animation: director-modal-in 160ms ease-out;
+.director-modal-panel[open] { display: flex; flex-direction: column; }
+.director-modal-panel::backdrop { background: rgba(18, 15, 29, .54); }
+.director-modal-panel .community-editor-header {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 24px;
+  border-bottom: 1px solid var(--console-line);
 }
+.director-modal-panel .console-icon-button { flex-shrink: 0; }
+.director-modal-panel .director-editor-form {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  gap: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  overflow: hidden;
+}
+.director-editor-fields {
+  display: grid;
+  gap: 20px;
+  min-height: 0;
+  min-width: 0;
+  margin: 0;
+  padding: 24px;
+  border: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.director-translation-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.director-translation-button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 14px;
+  min-width: 0;
+  border: 1px solid var(--console-line);
+  border-radius: 10px;
+  background: #faf8ff;
+  color: var(--console-ink);
+  text-align: left;
+  cursor: pointer;
+  line-height: 1.5;
+  word-break: keep-all;
+}
+.director-translation-button span { color: var(--console-purple); font-size: 12px; }
+.director-translation-button:hover { border-color: var(--console-purple); background: #f2edff; }
+.director-secondary-button {
+  background: #fff;
+  border: 1px solid var(--console-line);
+  border-radius: 8px;
+  color: var(--console-ink);
+  padding: 10px 16px;
+  min-height: 42px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.director-modal-panel button:focus-visible { outline: 3px solid #9c83ee; outline-offset: 3px; }
+.director-modal-panel button:disabled { cursor: wait; opacity: .6; }
+.director-modal-panel .director-editor-footer {
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  padding: 16px 24px;
+  gap: 10px;
+  background: #fff;
+  border-top: 1px solid var(--console-line);
+}
+.director-editor-footer > .danger-button { margin-right: auto; }
+.director-delete-confirm { padding: 16px 24px; background: #fff4f4; flex-shrink: 0; }
+.director-delete-confirm p { margin: 6px 0 12px; font-size: 13px; line-height: 1.6; }
+.director-delete-confirm button + button { margin-left: 8px; }
+.director-modal-panel.is-open { animation: director-modal-in 160ms ease-out; }
+@media (max-width: 560px) {
+  .director-modal-panel { max-height: calc(100dvh - 24px); max-width: calc(100vw - 24px); }
+  .director-modal-panel .community-editor-header, .director-editor-fields { padding: 16px; }
+  .director-modal-panel .director-editor-footer { padding: 12px 16px; }
+  .director-modal-panel .community-form-grid { grid-template-columns: 1fr; }
+  .director-translation-options { grid-template-columns: 1fr; }
+  .director-translation-button { flex-direction: row; justify-content: space-between; align-items: center; }
+}
+@media (prefers-reduced-motion: reduce) { .director-modal-panel.is-open { animation: none; } }
 
 @keyframes director-modal-in {
   from {
