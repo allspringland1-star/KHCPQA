@@ -14659,3 +14659,10 @@ p {
     flex-basis: 100%;
   }
 }
+
+.community-group-note { color: var(--console-muted); font-size: 13px; line-height: 1.6; margin: 16px 20px 0; }
+.community-post-languages { display: flex; flex-wrap: wrap; gap: 8px; min-width: 240px; }
+.community-post-language { display: grid; gap: 4px; padding: 10px 12px; min-width: 100px; min-height: 60px; border: 1px solid var(--console-line); border-radius: 8px; background: #f8f6ff; color: var(--console-purple-dark); text-align: left; cursor: pointer; }
+.community-post-language span { color: var(--console-muted); font-size: 12px; }
+.community-post-language:hover:not(:disabled) { border-color: var(--console-purple); }
+.community-post-language:focus-visible { outline: 2px solid var(--console-purple); outline-offset: 2px; }

@@ -17,7 +17,9 @@ import {
 } from "@/app/admin/actions";
 import { AdminStatusBadge, AdminTable, getTone } from "@/components/AdminConsole";
 import type { AdminContentRow } from "@/lib/admin-data";
-import { adminLocaleLabels as localeLabels, createTranslationDraft } from "@/lib/admin-content-locales";
+import { adminLocaleLabels as localeLabels, createTranslationDraft, resolveTranslationEditor } from "@/lib/admin-content-locales";
+
+import { groupCommunityPosts, filterCommunityPostGroups } from "@/lib/community-post-groups";
 
 type ActivityOption = {
   key: string;
@@ -144,23 +146,10 @@ export function AdminCommunityManager({
     () => items.filter((item) => !isBoardIntro(item, boardKeys)),
     [boardKeys, items]
   );
-  const filteredPosts = useMemo(() => {
-    const keyword = search.trim().toLowerCase();
-
-    return postItems.filter((item) => {
-      const boardKey = getBoardKey(item.slug ?? "", boardKeys);
-      const matchesKeyword =
-        !keyword ||
-        item.title.toLowerCase().includes(keyword) ||
-        item.slug?.toLowerCase().includes(keyword) ||
-        item.summary?.toLowerCase().includes(keyword);
-      const matchesBoard = !boardFilter || boardKey === boardFilter;
-      const matchesLocale = !localeFilter || item.locale === localeFilter;
-      const matchesStatus = !statusFilter || item.status === statusFilter;
-
-      return matchesKeyword && matchesBoard && matchesLocale && matchesStatus;
-    });
-  }, [boardFilter, boardKeys, localeFilter, postItems, search, statusFilter]);
+  const filteredPosts = useMemo(() => filterCommunityPostGroups(
+    groupCommunityPosts(postItems), search, localeFilter, statusFilter
+  ).filter(({source}) => !boardFilter || getBoardKey(source.slug ?? "", boardKeys) === boardFilter),
+  [boardFilter, boardKeys, localeFilter, postItems, search, statusFilter]);
   const boardRows = filteredBoards.map((board, index) => ({
     count: board.postCount,
     id: board.id,
@@ -192,13 +181,24 @@ export function AdminCommunityManager({
     ),
     type: <code className="community-code">{board.key}</code>
   }));
-  const postRows = filteredPosts.map((item) => {
+  const postRows = filteredPosts.map(({source: item, translations}) => {
     const boardKey = getBoardKey(item.slug ?? "", boardKeys);
 
     return {
       board: boardTitleByKey.get(boardKey) ?? boardKey,
       id: item.id ?? `${item.locale}-${item.slug}`,
-      locale: localeLabels[item.locale] ?? item.locale,
+      locale: <div className="community-post-languages">
+        {Object.entries(localeLabels).map(([locale, label]) => {
+          const translation = translations.find(row => row.locale === locale);
+          return <button className="community-post-language" key={locale} type="button"
+            aria-label={`${item.title} · ${label} · ${translation ? statusLabel(translation.status) + " 수정" : "번역 추가"}`}
+            disabled={isBusy || (!translation && !item.slug)}
+            onClick={() => openPostLanguage(item, locale)}>
+            <strong>{label}</strong>
+            <span>{translation ? statusLabel(translation.status) : "미등록 · 추가"}</span>
+          </button>;
+        })}
+      </div>,
       manage: (
         <button
           aria-label={`${item.title} 게시글 수정`}
@@ -269,11 +269,11 @@ export function AdminCommunityManager({
     });
   }
 
-  function selectPost(item: AdminContentRow) {
+  function selectPost(item: AdminContentRow, isNew = false) {
     setActiveTab("posts");
     setIsEditorOpen(true);
     setIsKeyLocked(true);
-    setSelectedItem(item);
+    setSelectedItem(isNew ? null : item);
     resetImageInput();
     setResult(null);
     setEditor({
@@ -288,6 +288,14 @@ export function AdminCommunityManager({
       summary: item.summary ?? "",
       title: item.title
     });
+  }
+
+  function openPostLanguage(source: AdminContentRow, locale: string) {
+    if (locale === source.locale) { selectPost(source); return; }
+    const target = resolveTranslationEditor(source, locale, postItems);
+    if (!target) return;
+    selectPost(target.item, target.isNew);
+    if (target.isNew) setResult({ok: true, message: "번역 초안을 복사했습니다. 내용을 번역한 뒤 검수 완료로 저장하세요."});
   }
 
   function updateEditor(name: keyof EditorState, value: string) {
@@ -489,6 +497,7 @@ export function AdminCommunityManager({
           </div>
         </div>
 
+        {activeTab === "posts" ? <p className="community-group-note">게시글 하나당 한 줄로 표시합니다. 언어 버튼을 눌러 번역을 추가하거나 수정하세요. 삭제는 편집 중인 언어에만 적용됩니다.</p> : null}
         <div className="console-filter-bar">
           <label className="console-search-input">
             <span className="sr-only">커뮤니티 검색</span>
@@ -554,8 +563,7 @@ export function AdminCommunityManager({
             columns={[
               { key: "title", label: "제목" },
               { key: "board", label: "게시판" },
-              { key: "locale", label: "언어", align: "center" },
-              { key: "status", label: "상태", align: "center" },
+              { key: "locale", label: "언어별 편집 / 공개 상태" },
               { key: "updatedAt", label: "최종 수정일", align: "center" },
               { key: "manage", label: "관리", align: "center" }
             ]}
@@ -947,7 +955,7 @@ function buildBoards(
         key,
         latest,
         order: option?.order ?? 1000 + Array.from(groups.keys()).indexOf(key),
-        postCount: sortedItems.filter((item) => item.slug !== key).length,
+        postCount: groupCommunityPosts(sortedItems.filter((item) => item.slug !== key)).length,
         published: sortedItems.some((item) => item.status === "published"),
         source: option?.source ?? "관리자 추가",
         summary: intro?.summary ?? option?.summary ?? latest?.summary ?? "관리자에서 추가한 커뮤니티 게시판입니다.",
