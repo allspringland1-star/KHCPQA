@@ -65,7 +65,7 @@ test("director form uses operator-friendly fields and upload preview", async () 
   assert.match(managerSource, /selectedImagePreviewUrl/);
   assert.match(managerSource, /URL\.createObjectURL/);
   assert.match(managerSource, />언어</);
-  assert.match(managerSource, /createTranslationDraft/);
+  assert.match(managerSource, /resolveTranslationEditor/);
   assert.match(managerSource, /value="reviewed"/);
   assert.doesNotMatch(managerSource, />Slug</);
   assert.doesNotMatch(managerSource, />출처 URL</);

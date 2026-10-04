@@ -15,7 +15,7 @@ import {
 } from "@/app/admin/actions";
 import { AdminStatusBadge, AdminTable, getTone } from "@/components/AdminConsole";
 import type { AdminContentRow } from "@/lib/admin-data";
-import { adminLocaleLabels as localeLabels, createTranslationDraft } from "@/lib/admin-content-locales";
+import { adminLocaleLabels as localeLabels, resolveTranslationEditor } from "@/lib/admin-content-locales";
 
 type ActionResult = SaveAdminContentResult | DeleteAdminContentResult | UploadAdminContentImageResult;
 
@@ -178,7 +178,7 @@ export function AdminDirectorsManager({
     ),
     translations: item.locale === "ko" ? Object.entries(localeLabels).filter(([locale]) => locale !== "ko").map(([locale, label]) => {
       const translated = items.find((row) => row.slug === item.slug && row.locale === locale);
-      return <button key={locale} className="community-link-button" type="button" onClick={() => selectItem(translated || item)}>{label}: {translated ? statusLabel(translated.status) : "미등록"} </button>;
+      return <button key={locale} className="community-link-button" type="button" onClick={() => openTranslation(item, locale)}>{label}: {translated ? statusLabel(translated.status) : "미등록"} </button>;
     }) : "한국어 항목과 연결됨",
     updatedAt: item.updatedAt
   }));
@@ -229,12 +229,12 @@ export function AdminDirectorsManager({
     });
   }
 
-  function selectItem(item: AdminContentRow) {
+  function selectItem(item: AdminContentRow, isNew = false) {
     const summary = parseDirectorSummary(item.summary ?? "");
     const profileSections = parseProfileSections(item.body ?? "");
 
     setIsEditorOpen(true);
-    setSelectedItem(item);
+    setSelectedItem(isNew ? null : item);
     setResult(null);
     resetImageInput();
     setEditor({
@@ -256,16 +256,11 @@ export function AdminDirectorsManager({
     setEditor((current) => ({ ...current, [name]: value }));
   }
 
-  function startTranslation(locale: string) {
-    const draft = createTranslationDraft(editor, locale, items);
-    if (!draft) {
-      setResult({ ok: false, message: "해당 언어 디렉터가 이미 있습니다. 목록에서 기존 항목을 수정해 주세요." });
-      return;
-    }
-    setSelectedItem(null);
-    resetImageInput();
-    setEditor(draft);
-    setResult({ ok: true, message: "번역 초안을 복사했습니다. 내용을 번역하고 검수 완료로 저장하세요." });
+  function openTranslation(source: AdminContentRow, locale: string) {
+    const target = resolveTranslationEditor(source, locale, items);
+    if (!target) return;
+    selectItem(target.item, target.isNew);
+    if (target.isNew) setResult({ ok: true, message: `${localeLabels[locale]} 번역 초안입니다. 이름과 내용을 번역해 저장하세요. 한국어 원본은 변경되지 않습니다.` });
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -311,6 +306,7 @@ export function AdminDirectorsManager({
           body: composeProfileBody(editor) || editor.legacyProfileMemo,
           contentType: "Page",
           imageUrl,
+          expectedContentId: selectedItem?.id,
           locale: editor.locale,
           preventOverwrite: !selectedItem,
           slug,
@@ -442,7 +438,7 @@ export function AdminDirectorsManager({
           >
             <div className="community-editor-header">
               <div>
-                <h2 id="director-modal-title">{selectedItem ? `${editor.title} 수정` : "디렉터 등록"}</h2>
+                <h2 id="director-modal-title">{`${localeLabels[editor.locale]} · ${selectedItem ? `${editor.title} 수정` : editor.locale === "ko" ? "디렉터 등록" : "번역 등록"}`}</h2>
                 <p>{localeLabels[editor.locale]} · 이름, 직책과 사진을 관리합니다.</p>
               </div>
               <button
@@ -464,7 +460,7 @@ export function AdminDirectorsManager({
               {selectedItem?.locale === "ko" ? (
                 <div className="director-translation-options" aria-label="다른 언어 번역 만들기">
                   {Object.entries(localeLabels).filter(([locale]) => locale !== editor.locale).map(([locale, label]) => (
-                    <button className="director-translation-button" disabled={isBusy} key={locale} onClick={() => { const existing = items.find((item) => item.slug === editor.slug && item.locale === locale); if (existing) selectItem(existing); else startTranslation(locale); }} type="button">
+                    <button className="director-translation-button" disabled={isBusy} key={locale} onClick={() => openTranslation(selectedItem, locale)} type="button">
                       <strong>{label}</strong><span>{items.some((item) => item.slug === editor.slug && item.locale === locale) ? "번역 수정" : "번역 초안 만들기"}</span>
                     </button>
                   ))}
@@ -563,7 +559,7 @@ export function AdminDirectorsManager({
                 <button className="director-secondary-button" disabled={isBusy} onClick={closeEditor} type="button">닫기</button>
                 <button className="console-primary-button" disabled={isBusy} type="submit">
                   <Save size={16} />
-                  {isBusy ? (pendingAction === "delete" ? "삭제 중…" : "저장 중…") : "변경사항 저장"}
+                  {isBusy ? (pendingAction === "delete" ? "삭제 중…" : "저장 중…") : `${localeLabels[editor.locale]} 저장`}
                 </button>
               </div>
             </form>

@@ -1140,6 +1140,7 @@ export async function uploadAdminContentAttachment(formData: FormData): Promise<
 export async function saveAdminContent(input: {
   body: string;
   contentType: string;
+  expectedContentId?: string;
   imageAlt?: string;
   imageUrl: string;
   locale: string;
@@ -1204,6 +1205,10 @@ export async function saveAdminContent(input: {
     .eq("locale", trimmed.locale)
     .eq("slug", trimmed.slug)
     .maybeSingle();
+
+  if (input.expectedContentId && existingContent?.id !== input.expectedContentId) {
+    return { ok: false, message: "편집 대상의 언어 또는 항목이 일치하지 않습니다. 목록에서 다시 열어 주세요." };
+  }
 
   if (trimmed.preventOverwrite && existingContent?.id) {
     return {
