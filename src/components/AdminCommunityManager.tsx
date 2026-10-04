@@ -612,6 +612,7 @@ export function AdminCommunityManager({
               <button
                 aria-label="편집 패널 닫기"
                 className="console-row-action"
+                disabled={isBusy}
                 onClick={() => {
                   setSelectedItem(null);
                   setIsEditorOpen(false);
@@ -626,12 +627,17 @@ export function AdminCommunityManager({
               </button>
             </div>
 
-          <p className="community-editor-note">게시글은 선택한 언어에만 표시됩니다. 한국어 원문을 저장한 뒤 각 언어의 번역을 별도로 등록하세요. 번역은 검수 완료로 저장한 후 다시 열어 최고 관리자가 노출로 저장해야 공개됩니다.</p>
+          <div className="community-language-guide">
+            <strong>{localeLabels[editor.locale] ?? editor.locale} 콘텐츠 편집 중</strong>
+            <p className="community-editor-note">게시글은 선택한 언어에만 표시됩니다. 다른 언어는 번역 초안을 만든 뒤 내용을 번역해 주세요.</p>
+            <p className="community-editor-note">번역 공개: 검수 완료로 저장 → 다시 열기 → 최고 관리자가 노출로 저장</p>
+          </div>
           {selectedItem ? (
-            <div className="community-editor-actions" aria-label="다른 언어 번역 만들기">
+            <div className="community-translation-grid" aria-label="다른 언어 번역 만들기">
               {Object.entries(localeLabels).filter(([locale]) => locale !== editor.locale).map(([locale, label]) => (
-                <button className="console-row-action" disabled={isBusy || items.some((item) => item.slug === editor.slug && item.locale === locale)} key={locale} onClick={() => startTranslation(locale)} type="button">
-                  {label} 번역 초안 만들기{items.some((item) => item.slug === editor.slug && item.locale === locale) ? " (등록됨)" : ""}
+                <button className="community-translation-card" disabled={isBusy || items.some((item) => item.slug === editor.slug && item.locale === locale)} key={locale} onClick={() => startTranslation(locale)} type="button">
+                  <strong>{label}</strong>
+                  <span>{items.some((item) => item.slug === editor.slug && item.locale === locale) ? "등록됨 · 목록에서 수정" : "번역 초안 만들기"}</span>
                 </button>
               ))}
             </div>
@@ -853,10 +859,11 @@ export function AdminCommunityManager({
             <p className={result.ok ? "community-result is-success" : "community-result is-error"}>{result.message}</p>
           ) : null}
 
-          <div className="admin-editor-actions">
+          <div className="admin-editor-actions community-save-bar">
+            <span className="community-save-target">저장 언어: <strong>{localeLabels[editor.locale] ?? editor.locale}</strong></span>
               <button className="primary-button" disabled={isBusy} type="submit">
                 <Save size={16} />
-                {pendingAction === "save" ? "저장 중" : "저장"}
+                {pendingAction === "save" ? "저장 중" : `${localeLabels[editor.locale] ?? editor.locale} 저장`}
               </button>
               {selectedItem?.id ? (
                 <button className="secondary-button danger" disabled={isBusy} onClick={handleDelete} type="button">

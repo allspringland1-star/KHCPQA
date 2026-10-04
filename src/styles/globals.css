@@ -14563,3 +14563,99 @@ p {
 .director-language-button span { font-size: 11px; color: var(--console-muted); }
 .director-language-button:hover { background: var(--console-purple-soft); border-color: var(--console-purple); }
 .director-language-button:focus-visible { outline: 2px solid var(--console-purple); outline-offset: 2px; }
+
+/* Community editor: text actions must not inherit icon-only sizing. */
+.community-editor-panel {
+  overflow: visible;
+}
+.community-editor-form {
+  display: flex;
+  flex-direction: column;
+}
+.community-editor-form .admin-editor-grid {
+  align-items: start;
+}
+.community-editor-form .admin-editor-grid > label {
+  align-content: start;
+  min-width: 0;
+}
+.community-editor-form .admin-editor-grid select {
+  height: 44px;
+}
+.community-editor-heading > .console-row-action {
+  flex-shrink: 0;
+}
+.community-language-guide {
+  background: #f8f6ff;
+  border: 1px solid var(--console-line);
+  border-radius: 10px;
+  display: grid;
+  gap: 6px;
+  padding: 16px;
+}
+.community-language-guide > strong {
+  color: var(--console-purple-dark);
+  font-size: 14px;
+}
+.community-translation-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.community-translation-card {
+  background: white;
+  border: 1px solid var(--console-line);
+  border-radius: 10px;
+  color: var(--console-purple-dark);
+  cursor: pointer;
+  display: grid;
+  gap: 6px;
+  min-height: 76px;
+  padding: 14px 16px;
+  text-align: left;
+  white-space: normal;
+  line-height: 1.5;
+}
+.community-translation-card span {
+  font-size: 12px;
+}
+.community-translation-card:hover:not(:disabled) {
+  background: #f8f6ff;
+  border-color: var(--console-purple);
+}
+.community-translation-card:disabled {
+  background: #f7f7fa;
+  color: var(--console-muted);
+  cursor: default;
+}
+.community-translation-card:focus-visible {
+  outline: 2px solid var(--console-purple);
+  outline-offset: 3px;
+}
+.community-save-bar {
+  background: white;
+  border-top: 1px solid var(--console-line);
+  bottom: 0;
+  padding: 14px 0;
+  position: sticky;
+  z-index: 5;
+}
+.community-save-target {
+  color: var(--console-muted);
+  font-size: 13px;
+  margin-right: auto;
+}
+@media (max-width: 600px) {
+  .community-translation-grid {
+    grid-template-columns: 1fr;
+  }
+  .community-editor-form .admin-editor-grid {
+    grid-template-columns: 1fr;
+  }
+  .community-editor-panel {
+    padding: 12px;
+  }
+  .community-save-target {
+    flex-basis: 100%;
+  }
+}
