@@ -11279,6 +11279,19 @@ p {
   margin-top: 4px;
 }
 
+.admin-course-review-panel {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.admin-course-review-panel .checkbox {
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.admin-course-review-panel .checkbox input {
+  flex-shrink: 0;
+}
+
 .admin-course-public-panel p {
   color: #5f6c66;
   font-size: 12px;

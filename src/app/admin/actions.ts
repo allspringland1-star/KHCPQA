@@ -1477,6 +1477,7 @@ export async function loadPreparedCourseTranslation(input: { courseId: string; l
 
 export async function saveAdminCourseLocalization(input: {
   expectedSourceUpdatedAt?: string;
+  reviewedSourceUpdatedAt?: string;
   certificationNote: string;
   contentSections: CourseContentSection[];
   courseId: string;
@@ -1513,12 +1514,13 @@ export async function saveAdminCourseLocalization(input: {
 
   if (courseError || !course) return { ok: false, message: courseError?.message ?? "과정을 찾을 수 없습니다." };
 
-  const { data: existingLocalization } = await actor.supabase
+  const { data: existingLocalization, error: localizationError } = await actor.supabase
     .from("course_localizations")
     .select("status, reviewed_at, reviewed_by, translated_from_updated_at")
     .eq("course_id", payload.courseId)
     .eq("locale", payload.locale)
     .maybeSingle();
+  if (localizationError) return { ok: false, message: localizationError.message };
   const now = new Date().toISOString();
   const sourceRow = payload.locale === "ko"
     ? { updated_at: now }
@@ -1537,14 +1539,18 @@ export async function saveAdminCourseLocalization(input: {
     if (actor.role !== "super_admin") {
       return { ok: false, message: "최종 공개는 최고 관리자만 승인할 수 있습니다." };
     }
-    if (payload.locale !== "ko" && existingLocalization?.status !== "reviewed") {
+    const isPublishedEdit = payload.locale !== "ko" && existingLocalization?.status === "published";
+    if (isPublishedEdit && (!sourceUpdatedAt || input.reviewedSourceUpdatedAt !== sourceUpdatedAt)) {
+      return { ok: false, message: "최신 한국어 원문과 수정 내용을 확인한 뒤 검수 확인을 선택해 주세요. 원문이 변경됐다면 다시 확인해 주세요." };
+    }
+    if (payload.locale !== "ko" && existingLocalization?.status !== "reviewed" && !isPublishedEdit) {
       return { ok: false, message: "번역을 먼저 검수 완료 상태로 저장해 주세요." };
     }
     const publishValidation = canPublishTranslation({
       freshness: getTranslationFreshness({
         locale: payload.locale,
         sourceUpdatedAt,
-        translatedFromUpdatedAt: payload.locale === "ko"
+        translatedFromUpdatedAt: payload.locale === "ko" || isPublishedEdit
           ? sourceUpdatedAt
           : existingLocalization?.translated_from_updated_at
       }),

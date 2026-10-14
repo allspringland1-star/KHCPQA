@@ -153,6 +153,11 @@ export function AdminCoursesManager({
   const [createTitle, setCreateTitle] = useState("");
   const [editor, setEditor] = useState<LocalizationEditor>(emptyLocalization);
   const [preparedSourceUpdatedAt, setPreparedSourceUpdatedAt] = useState<string>();
+  const [reviewedSourceUpdatedAt, setReviewedSourceUpdatedAt] = useState<string>();
+  // Server actions revalidate the page before the complete save flow finishes.
+  // Keep this editor's working copy until the user switches course or language.
+  const retainedEditorKey = useRef<string | null>(null);
+  const saveInFlight = useRef(false);
   const preparedRequest = useRef(0);
   const [editorTab, setEditorTab] = useState<EditorTab>("basic");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -169,6 +174,8 @@ export function AdminCoursesManager({
 
   const activeCourse = courses.find((course) => course.id === activeCourseId) ?? courses[0] ?? null;
   const activeLocalization = activeCourse?.localizations.find((item) => item.locale === activeLocale) ?? null;
+  const koreanSourceUpdatedAt = activeCourse?.localizations.find((item) => item.locale === "ko")?.updatedAt;
+  const needsPublishedReview = activeLocale !== "ko" && activeLocalization?.status === "published" && editor.status === "published";
   const activePublicHref = activeCourse ? `/${activeLocale}/curriculum/${activeCourse.slug}` : "";
   const isActiveLocalePublished = Boolean(activeCourse?.isActive && activeLocalization?.status === "published");
   const activeLocaleActionMessage = getCoursePublicationGuide(activeCourse?.isActive ?? false, activeLocalization?.status);
@@ -187,8 +194,12 @@ export function AdminCoursesManager({
   }, [activeCourse, courses]);
 
   useEffect(() => {
+    const editorKey = activeCourse ? `${activeCourse.id}:${activeLocale}` : null;
+    if (editorKey && retainedEditorKey.current === editorKey) return;
+    retainedEditorKey.current = null;
     preparedRequest.current += 1;
     setPreparedSourceUpdatedAt(undefined);
+    setReviewedSourceUpdatedAt(undefined);
     if (!activeCourse) {
       setEditor(emptyLocalization);
       return;
@@ -299,6 +310,7 @@ export function AdminCoursesManager({
 
   function updateEditor<K extends keyof LocalizationEditor>(name: K, value: LocalizationEditor[K]) {
     setEditor((current) => ({ ...current, [name]: value }));
+    setReviewedSourceUpdatedAt(undefined);
     setResult(null);
   }
 
@@ -442,13 +454,19 @@ export function AdminCoursesManager({
 
   function handleLocalizationSave(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!activeCourse) return;
+    if (!activeCourse || saveInFlight.current) return;
     if (preparedSourceUpdatedAt && editor.status !== "reviewed") {
       setResult({ ok: false, message: "불러온 번역을 검수한 뒤 게시 상태를 검수완료로 선택해 저장해 주세요." });
       return;
     }
+    if (needsPublishedReview && (!koreanSourceUpdatedAt || reviewedSourceUpdatedAt !== koreanSourceUpdatedAt)) {
+      setResult({ ok: false, message: "최신 한국어 원문과 수정 내용을 확인한 뒤 아래 검수 확인을 선택해 주세요." });
+      return;
+    }
     const formData = new FormData(event.currentTarget);
 
+    retainedEditorKey.current = `${activeCourse.id}:${activeLocale}`;
+    saveInFlight.current = true;
     setIsSaving(true);
     startTransition(async () => {
       try {
@@ -519,6 +537,7 @@ export function AdminCoursesManager({
         const nextResult = await saveAdminCourseLocalization({
           ...editor,
           expectedSourceUpdatedAt: preparedSourceUpdatedAt,
+          reviewedSourceUpdatedAt,
           contentSections,
           courseId: activeCourse.id,
           imageUrl,
@@ -530,12 +549,17 @@ export function AdminCoursesManager({
           ? { ...nextResult, message: `과정 설정과 ${activeLocale.toUpperCase()} 콘텐츠를 저장했습니다.` }
           : { ...nextResult, message: `과정 설정은 저장됐지만 선택한 언어의 과정 내용 저장에 실패했습니다: ${nextResult.message}` });
         if (nextResult.ok) {
+          setPreparedSourceUpdatedAt(undefined);
+          setReviewedSourceUpdatedAt(undefined);
           setEditor((current) => ({ ...current, contentSections, imageUrl, pdfFileName, pdfUrl }));
           resetFileInputs();
           router.refresh();
         }
+      } catch {
+        setResult({ ok: false, message: "저장 완료를 확인하지 못했습니다. 연결 상태를 확인하고 다시 저장해 주세요." });
       } finally {
         setIsSaving(false);
+        saveInFlight.current = false;
       }
     });
   }
@@ -780,9 +804,15 @@ export function AdminCoursesManager({
                     {editor.pdfUrl ? <div className="community-attachment-preview"><a href={editor.pdfUrl} rel="noreferrer" target="_blank"><FileText size={16} /> {editor.pdfFileName || "등록된 PDF 보기"}</a><button onClick={() => setEditor((current) => ({ ...current, pdfFileName: "", pdfUrl: "" }))} type="button">첨부파일 제거</button></div> : null}
                   </label>
                 </div> : null}
-                {result ? <div className={result.ok ? "form-success" : "form-error full"} role="status">{result.ok ? <CheckCircle2 size={18} /> : null}<span>{result.message}</span></div> : null}
+                {needsPublishedReview ? <div className="full admin-course-public-panel admin-course-review-panel">
+                  <div><strong>공개 내용 수정 확인</strong><p>최고 관리자가 검수 확인 후 저장하면 {courseLocaleLabels[activeLocale]} 공개 내용에 바로 반영됩니다. 다른 언어의 교육 구성은 변경되지 않습니다.</p>
+                    <Link href={`/admin/courses?course=${encodeURIComponent(activeCourse.slug)}&locale=ko`} target="_blank" rel="noreferrer">한국어 원문 확인</Link>
+                    <label className="checkbox"><input type="checkbox" checked={Boolean(reviewedSourceUpdatedAt && reviewedSourceUpdatedAt === koreanSourceUpdatedAt)} onChange={(event) => setReviewedSourceUpdatedAt(event.target.checked ? koreanSourceUpdatedAt : undefined)} /> 최신 한국어 원문과 수정 내용을 확인했습니다.</label>
+                  </div>
+                </div> : null}
+                {result ? <div className={result.ok ? "form-success" : "form-error full"} role="status">{result.ok ? <CheckCircle2 size={18} /> : null}<span>{result.message}{!result.ok ? " 편집 내용은 이 화면에 유지됩니다. 다른 과정이나 언어로 이동하기 전에 다시 저장해 주세요." : ""}</span></div> : null}
                 <div className="admin-course-action-bar">
-                  <button className="primary-button" disabled={isPending} type="submit"><Save size={16} /> 변경사항 저장</button>
+                  <button className="primary-button" disabled={isPending || isSaving} type="submit"><Save size={16} /> {result && !result.ok ? "다시 저장" : "변경사항 저장"}</button>
                   {activeCourse.isActive ? <button className="secondary-button danger" disabled={isPending} onClick={handleArchive} type="button"><Archive size={16} /> 과정 보관</button> : (
                     <>
                       <button className="secondary-button" disabled={isPending} onClick={handleRestore} type="button"><RotateCcw size={16} /> 과정 다시 활성화</button>
